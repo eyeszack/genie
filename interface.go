@@ -3,6 +3,7 @@ package geenee
 import (
 	"io"
 	"strings"
+	"text/template"
 )
 
 type GeeneeError string
@@ -27,6 +28,9 @@ type Interface struct {
 	ShowUsageOnError bool
 	Out              io.Writer
 	Err              io.Writer
+	Version          string
+	RunSyntax        string
+	Templates        map[string]*template.Template
 }
 
 //Exec executes the Interface with the provided arguments.

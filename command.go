@@ -3,6 +3,7 @@ package geenee
 import (
 	"flag"
 	"io"
+	"text/template"
 )
 
 //CheckFunc is used to check stuff before run is called, if error is returned run will not be called.
@@ -20,6 +21,8 @@ type Command struct {
 	Err         io.Writer
 	Check       CheckFunc
 	Run         RunFunc
+	RunSyntax   string
+	Templates   map[string]*template.Template
 }
 
 //FlagWasProvided returns true if the flag was actually provided at execution time.
