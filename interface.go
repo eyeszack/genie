@@ -43,6 +43,17 @@ func (c *Interface) Exec(args []string) error {
 		return ErrInvalidInterfaceName
 	}
 
+	//just the interface was provided so run root command if available
+	if len(args) == 1 {
+		if c.RootCommand != nil {
+			return c.RootCommand.run([]string{})
+		}
+
+		return ErrNoOp
+	}
+
+	//there are more than enough args to check for flags etc....
+
 	flagStart, hasFlags := c.hasFlags(args)
 
 	//it's ok to not have flags, but if we do we assume a little structure
@@ -87,15 +98,6 @@ func (c *Interface) Exec(args []string) error {
 	//------
 	//no flags were provided so we run things a little differently, less structure
 	//-----
-
-	//no command was provided run the root command without args if provided
-	if len(args) == 1 {
-		if c.RootCommand != nil {
-			return c.RootCommand.run([]string{})
-		}
-
-		return ErrNoOp
-	}
 
 	//we may have a command provided
 	command, found := c.findCommand(args[1])
