@@ -267,17 +267,17 @@ HEADING:
 This can be used to provide all kinds of extra usage info.
 
 FLAGS:
-  --count	int
+  --count int
 		this is an int count (default 100)
-  -n	uint
+  -n uint
 		this is a uint flag (default 0)
-  --price	float
+  --price float
 		this is a float flag (default 1.5)
-  --testing	string
+  --testing string
 		this is a testing flag
-  --time	duration
+  --time duration
 		this is a duration flag (default 1h0m0s)
-  -v	boolean
+  -v
 		this is another testing flag (default false)
 
 SUBCOMMANDS:
