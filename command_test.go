@@ -5,9 +5,37 @@ import (
 	"errors"
 	"flag"
 	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
+	"time"
 )
+
+func Test_NewCommand(t *testing.T) {
+	t.Run("validate new", func(t *testing.T) {
+		wantName := "tester"
+		got := NewCommand(wantName)
+		if got == nil {
+			t.Fatal("want command, got nil")
+		}
+
+		if got.Name != wantName {
+			t.Errorf("want %s, got %s", wantName, got.Name)
+		}
+		if got.Flags.Name() != wantName {
+			t.Errorf("want %s, got %s", wantName, got.Flags.Name())
+		}
+		if got.Out != os.Stdout {
+			t.Errorf("want %v, got %v", os.Stdout, got.Out)
+		}
+		if got.Err != os.Stderr {
+			t.Errorf("want %v, got %v", os.Stderr, got.Err)
+		}
+		if got.Usage == nil {
+			t.Error("want DefaultCommandUsageFunc, got nil")
+		}
+	})
+}
 
 func TestCommand_FlagWasProvided(t *testing.T) {
 	t.Run("validate flag is found", func(t *testing.T) {
@@ -224,6 +252,82 @@ func TestCommand_run(t *testing.T) {
 		got := subject.run([]string{"-flag", "value"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+}
+
+func TestCommand_DefaultUsage(t *testing.T) {
+	t.Run("validate default usage", func(t *testing.T) {
+		want := `The test command is for testing.
+
+USAGE:
+test command [-flags...] [args...]
+
+HEADING:
+This can be used to provide all kinds of extra usage info.
+
+FLAGS:
+  --count	int
+		this is an int count (default 100)
+  -n	uint
+		this is a uint flag (default 0)
+  --price	float
+		this is a float flag (default 1.5)
+  --testing	string
+		this is a testing flag
+  --time	duration
+		this is a duration flag (default 1h0m0s)
+  -v	boolean
+		this is another testing flag (default false)
+
+SUBCOMMANDS:
+subcommand	The test command subcommand.
+`
+		subject := &Command{
+			Name:        "command",
+			RunSyntax:   "test command [-flags...] [args...]",
+			Description: "The test command is for testing.",
+			ExtraInfo: `HEADING:
+This can be used to provide all kinds of extra usage info.`,
+			Flags: flag.NewFlagSet("command", flag.ContinueOnError),
+			SubCommands: []*Command{
+				{
+					Name:        "subcommand",
+					RunSyntax:   "test command subcommand [-flags...] [args...]",
+					Description: "The test command subcommand.",
+				},
+			},
+			Usage: DefaultCommandUsageFunc,
+		}
+
+		subject.Flags.String("testing", "", "this is a testing flag")
+		subject.Flags.Bool("v", false, "this is another testing flag")
+		subject.Flags.Int("count", 100, "this is an int count")
+		subject.Flags.Float64("price", 1.5, "this is a float flag")
+		subject.Flags.Duration("time", time.Hour, "this is a duration flag")
+		subject.Flags.Uint("n", 0, "this is a uint flag")
+
+		got := subject.Usage(subject)
+		if got != want {
+			t.Errorf("want: %s got: %s", want, got)
+		}
+	})
+
+	t.Run("validate default usage minimal", func(t *testing.T) {
+		want := `The test command is for testing.
+
+USAGE:
+command
+`
+		subject := &Command{
+			Name:        "command",
+			Description: "The test command is for testing.",
+			Usage:       DefaultCommandUsageFunc,
+		}
+
+		got := subject.Usage(subject)
+		if got != want {
+			t.Errorf("want: %s got: %s", want, got)
 		}
 	})
 }

@@ -2,8 +2,8 @@ package geenee
 
 import (
 	"io"
+	"os"
 	"strings"
-	"text/template"
 )
 
 type GeeneeError string
@@ -22,15 +22,28 @@ var (
 
 //Interface is a very simple representation of a Command Line Interface or any Interface with commands.
 type Interface struct {
-	Name             string
-	RootCommand      *Command
-	Commands         []*Command
-	ShowUsageOnError bool
-	Out              io.Writer
-	Err              io.Writer
-	Version          string
-	RunSyntax        string
-	Templates        map[string]*template.Template
+	Name        string
+	RootCommand *Command
+	Commands    []*Command
+	Out         io.Writer
+	Err         io.Writer
+	Version     string
+}
+
+//NewInterface returns an Interface with sensible defaults.
+func NewInterface(name, version string, withRoot bool) *Interface {
+	i := &Interface{
+		Name:    name,
+		Out:     os.Stdout,
+		Err:     os.Stderr,
+		Version: version,
+	}
+
+	if withRoot {
+		i.RootCommand = NewCommand(name)
+	}
+
+	return i
 }
 
 //Exec executes the Interface with the provided arguments.

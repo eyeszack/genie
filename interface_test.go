@@ -3,6 +3,7 @@ package geenee
 import (
 	"bytes"
 	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -13,6 +14,72 @@ func TestInterfaceError_Error(t *testing.T) {
 		got := GeeneeError("heyo error")
 		if want != got.Error() {
 			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+}
+
+func Test_NewInterface(t *testing.T) {
+	t.Run("validate new", func(t *testing.T) {
+		wantName := "tester"
+		wantVersion := "0.0.0"
+		got := NewInterface(wantName, wantVersion, false)
+		if got == nil {
+			t.Fatal("want interface, got nil")
+		}
+
+		if got.Name != wantName {
+			t.Errorf("want %s, got %s", wantName, got.Name)
+		}
+		if got.Version != wantVersion {
+			t.Errorf("want %s, got %s", wantVersion, got.Version)
+		}
+		if got.Out != os.Stdout {
+			t.Errorf("want %v, got %v", os.Stdout, got.Out)
+		}
+		if got.Out != os.Stdout {
+			t.Errorf("want %v, got %v", os.Stdout, got.Out)
+		}
+	})
+
+	t.Run("validate new, with root command", func(t *testing.T) {
+		wantName := "tester"
+		wantVersion := "0.0.0"
+		got := NewInterface(wantName, wantVersion, true)
+		if got == nil {
+			t.Fatal("want interface, got nil")
+		}
+
+		if got.Name != wantName {
+			t.Errorf("want %s, got %s", wantName, got.Name)
+		}
+		if got.Version != wantVersion {
+			t.Errorf("want %s, got %s", wantVersion, got.Version)
+		}
+		if got.Out != os.Stdout {
+			t.Errorf("want %v, got %v", os.Stdout, got.Out)
+		}
+		if got.Err != os.Stderr {
+			t.Errorf("want %v, got %v", os.Stderr, got.Err)
+		}
+
+		if got.RootCommand == nil {
+			t.Fatal("want root command, got nil")
+		}
+
+		if got.RootCommand.Name != wantName {
+			t.Errorf("want %s, got %s", wantName, got.RootCommand.Name)
+		}
+		if got.RootCommand.Flags.Name() != wantName {
+			t.Errorf("want %s, got %s", wantName, got.RootCommand.Flags.Name())
+		}
+		if got.RootCommand.Out != os.Stdout {
+			t.Errorf("want %v, got %v", os.Stdout, got.RootCommand.Out)
+		}
+		if got.RootCommand.Err != os.Stderr {
+			t.Errorf("want %v, got %v", os.Stderr, got.RootCommand.Err)
+		}
+		if got.RootCommand.Usage == nil {
+			t.Error("want DefaultCommandUsageFunc, got nil")
 		}
 	})
 }
