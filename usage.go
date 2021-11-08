@@ -35,17 +35,17 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 			typeOf := ""
 			switch fmt.Sprintf("%T", f.Value) {
 			case "*flag.boolValue":
-				typeOf = "\tboolean"
+				typeOf = ""
 			case "*flag.durationValue":
-				typeOf = "\tduration"
+				typeOf = " duration"
 			case "*flag.float64Value":
-				typeOf = "\tfloat"
+				typeOf = " float"
 			case "*flag.intValue", "int64Value":
-				typeOf = "\tint"
+				typeOf = " int"
 			case "*flag.stringValue":
-				typeOf = "\tstring"
+				typeOf = " string"
 			case "*flag.uintValue", "uint64Value":
-				typeOf = "\tuint"
+				typeOf = " uint"
 			}
 
 			dashes := "--"
