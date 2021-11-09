@@ -18,17 +18,18 @@ type UsageFunc func(command *Command) string
 
 //Command represents a command or subcommand of the interface.
 type Command struct {
-	Name        string
-	RunSyntax   string
-	Description string
-	ExtraInfo   string
-	Flags       *flag.FlagSet
-	SubCommands []*Command
-	Out         io.Writer
-	Err         io.Writer
-	Check       CheckFunc
-	Run         RunFunc
-	Usage       UsageFunc
+	Name           string
+	RunSyntax      string
+	Description    string
+	ExtraInfo      string
+	Flags          *flag.FlagSet
+	SubCommands    []*Command
+	Out            io.Writer
+	Err            io.Writer
+	Check          CheckFunc
+	Run            RunFunc
+	Usage          UsageFunc
+	MergeFlagUsage bool
 }
 
 //NewCommand returns a Command with sensible defaults.

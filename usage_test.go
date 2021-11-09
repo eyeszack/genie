@@ -65,6 +65,69 @@ This can be used to provide all kinds of extra usage info.`,
 		}
 	})
 
+	t.Run("validate default usage - merged flags", func(t *testing.T) {
+		want := `The test command is for testing.
+
+USAGE:
+test command [-flags...] [args...]
+
+HEADING:
+This can be used to provide all kinds of extra usage info.
+
+FLAGS:
+  --count -c int
+		this is an int count (default 100)
+  --number -n uint
+		this is a uint flag (default 0)
+  --price -p float
+		this is a float flag (default 1.5)
+  --testing -t string
+		this is a testing flag
+  --time -d duration
+		this is a duration flag (default 1h0m0s)
+  --verbose -v
+		this is another testing flag (default false)
+
+SUBCOMMANDS:
+subcommand	The test command subcommand.
+`
+		subject := &Command{
+			Name:        "command",
+			RunSyntax:   "test command [-flags...] [args...]",
+			Description: "The test command is for testing.",
+			ExtraInfo: `HEADING:
+This can be used to provide all kinds of extra usage info.`,
+			Flags: flag.NewFlagSet("command", flag.ContinueOnError),
+			SubCommands: []*Command{
+				{
+					Name:        "subcommand",
+					RunSyntax:   "test command subcommand [-flags...] [args...]",
+					Description: "The test command subcommand.",
+				},
+			},
+			Usage:          DefaultCommandUsageFunc,
+			MergeFlagUsage: true,
+		}
+
+		subject.Flags.String("testing", "", "this is a testing flag")
+		subject.Flags.Bool("v", false, "this is another testing flag")
+		subject.Flags.Int("count", 100, "this is an int count")
+		subject.Flags.Float64("price", 1.5, "this is a float flag")
+		subject.Flags.Duration("time", time.Hour, "this is a duration flag")
+		subject.Flags.Uint("n", 0, "this is a uint flag")
+		subject.Flags.String("t", "", "this is a testing flag")
+		subject.Flags.Bool("verbose", false, "this is another testing flag")
+		subject.Flags.Int("c", 100, "this is an int count")
+		subject.Flags.Float64("p", 1.5, "this is a float flag")
+		subject.Flags.Duration("d", time.Hour, "this is a duration flag")
+		subject.Flags.Uint("number", 0, "this is a uint flag")
+
+		got := subject.Usage(subject)
+		if got != want {
+			t.Errorf("want: %s got: %s", want, got)
+		}
+	})
+
 	t.Run("validate default usage minimal", func(t *testing.T) {
 		want := `The test command is for testing.
 
