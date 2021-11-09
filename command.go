@@ -2,6 +2,7 @@ package geenee
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"os"
 )
@@ -38,6 +39,9 @@ func NewCommand(name string) *Command {
 		Out:   os.Stdout,
 		Err:   os.Stderr,
 		Usage: DefaultCommandUsageFunc,
+	}
+	c.Flags.Usage = func() {
+		fmt.Fprint(c.Err, DefaultCommandUsageFunc(c))
 	}
 
 	return c
