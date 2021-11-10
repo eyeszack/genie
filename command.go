@@ -22,6 +22,7 @@ type Command struct {
 	Aliases        []string
 	RunSyntax      string
 	Description    string
+	Path           string
 	ExtraInfo      string
 	Flags          *flag.FlagSet
 	SubCommands    []*Command
@@ -38,6 +39,7 @@ type Command struct {
 func NewCommand(name string) *Command {
 	c := &Command{
 		Name:  name,
+		Path:  name, //default path to name, but this will be altered by AddCommand method
 		Flags: flag.NewFlagSet(name, flag.ExitOnError),
 		Out:   os.Stdout,
 		Err:   os.Stderr,
@@ -48,6 +50,12 @@ func NewCommand(name string) *Command {
 	}
 
 	return c
+}
+
+//AddSubCommand adds the command to the available subcommands. This will also adjust the path to the added command.
+func (c *Command) AddSubCommand(command *Command) {
+	command.Path = fmt.Sprintf("%s %s", c.Path, command.Name)
+	c.SubCommands = append(c.SubCommands, command)
 }
 
 //FlagWasProvided returns true if the flag was actually provided at execution time.
