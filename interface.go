@@ -24,7 +24,6 @@ var (
 type Interface struct {
 	Name        string
 	RootCommand *Command
-	Commands    []*Command
 	Out         io.Writer
 	Err         io.Writer
 	Version     string
@@ -86,7 +85,7 @@ func (c *Interface) Exec(args []string) error {
 			return c.RootCommand.run(args[flagStart:])
 		case 2:
 			//calling a command
-			command, found := c.findCommand(args[1])
+			command, found := c.RootCommand.findSubCommand(args[1])
 			if !found {
 				return ErrCommandNotFound
 			}
@@ -94,7 +93,7 @@ func (c *Interface) Exec(args []string) error {
 			return command.run(args[flagStart:])
 		case 3:
 			//calling a subcommand
-			command, found := c.findCommand(args[1])
+			command, found := c.RootCommand.findSubCommand(args[1])
 			if !found {
 				return ErrCommandNotFound
 			}
@@ -111,9 +110,12 @@ func (c *Interface) Exec(args []string) error {
 	//------
 	//no flags were provided so we run things a little differently, less structure
 	//-----
+	if c.RootCommand == nil {
+		return ErrNoOp
+	}
 
 	//we may have a command provided
-	command, found := c.findCommand(args[1])
+	command, found := c.RootCommand.findSubCommand(args[1])
 	if found {
 		//let's check for a subcommand
 		if len(args) > 2 {
@@ -127,28 +129,7 @@ func (c *Interface) Exec(args []string) error {
 		return command.run(args[2:])
 	}
 
-	//if a command was not found check to see if there is a root command to run and pass the args
-	if c.RootCommand == nil {
-		return ErrNoOp //or should this be command not found?
-	}
-
 	return c.RootCommand.run(args[1:])
-}
-
-func (c *Interface) findCommand(name string) (*Command, bool) {
-	for _, command := range c.Commands {
-		if name == command.Name {
-			return command, true
-		}
-
-		for _, alias := range command.Aliases {
-			if name == alias {
-				return command, true
-			}
-		}
-	}
-
-	return nil, false
 }
 
 func (c *Interface) hasFlags(args []string) (int, bool) {

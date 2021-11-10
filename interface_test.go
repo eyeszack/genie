@@ -91,7 +91,7 @@ func TestInterface_Exec(t *testing.T) {
 		subject := &Interface{
 			Name: "test",
 			RootCommand: &Command{
-				Name: "",
+				Name: "test",
 				Out:  b,
 				Err:  b,
 				Run: func(command *Command) error {
@@ -121,7 +121,7 @@ func TestInterface_Exec(t *testing.T) {
 		subject := &Interface{
 			Name: "test",
 			RootCommand: &Command{
-				Name: "",
+				Name: "test",
 				Out:  b,
 				Err:  b,
 				Run: func(command *Command) error {
@@ -151,7 +151,7 @@ func TestInterface_Exec(t *testing.T) {
 		subject := &Interface{
 			Name: "test",
 			RootCommand: &Command{
-				Name: "",
+				Name: "test",
 				Out:  b,
 				Err:  b,
 				Run: func(command *Command) error {
@@ -181,7 +181,7 @@ func TestInterface_Exec(t *testing.T) {
 		subject := &Interface{
 			Name: "test",
 			RootCommand: &Command{
-				Name: "",
+				Name: "test",
 				Out:  b,
 				Err:  b,
 				Run: func(command *Command) error {
@@ -211,22 +211,22 @@ func TestInterface_Exec(t *testing.T) {
 		subject := &Interface{
 			Name: "test",
 			RootCommand: &Command{
-				Name: "",
+				Name: "test",
 				Out:  b,
 				Err:  b,
 				Run: func(command *Command) error {
 					command.Out.Write([]byte("root command ran"))
 					return nil
 				},
-			},
-			Commands: []*Command{
-				{
-					Name: "command",
-					Out:  b,
-					Err:  b,
-					Run: func(command *Command) error {
-						command.Out.Write([]byte("command ran"))
-						return nil
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Out:  b,
+						Err:  b,
+						Run: func(command *Command) error {
+							command.Out.Write([]byte("command ran"))
+							return nil
+						},
 					},
 				},
 			},
@@ -252,22 +252,22 @@ func TestInterface_Exec(t *testing.T) {
 		subject := &Interface{
 			Name: "test",
 			RootCommand: &Command{
-				Name: "",
+				Name: "test",
 				Out:  b,
 				Err:  b,
 				Run: func(command *Command) error {
 					command.Out.Write([]byte("root command ran"))
 					return nil
 				},
-			},
-			Commands: []*Command{
-				{
-					Name: "command",
-					Out:  b,
-					Err:  b,
-					Run: func(command *Command) error {
-						command.Out.Write([]byte("command ran"))
-						return nil
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Out:  b,
+						Err:  b,
+						Run: func(command *Command) error {
+							command.Out.Write([]byte("command ran"))
+							return nil
+						},
 					},
 				},
 			},
@@ -293,31 +293,31 @@ func TestInterface_Exec(t *testing.T) {
 		subject := &Interface{
 			Name: "test",
 			RootCommand: &Command{
-				Name: "",
+				Name: "test",
 				Out:  b,
 				Err:  b,
 				Run: func(command *Command) error {
 					command.Out.Write([]byte("root command ran"))
 					return nil
 				},
-			},
-			Commands: []*Command{
-				{
-					Name: "command",
-					Out:  b,
-					Err:  b,
-					Run: func(command *Command) error {
-						command.Out.Write([]byte("command ran"))
-						return nil
-					},
-					SubCommands: []*Command{
-						{
-							Name: "subcommand",
-							Out:  b,
-							Err:  b,
-							Run: func(command *Command) error {
-								command.Out.Write([]byte("subcommand ran"))
-								return nil
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Out:  b,
+						Err:  b,
+						Run: func(command *Command) error {
+							command.Out.Write([]byte("command ran"))
+							return nil
+						},
+						SubCommands: []*Command{
+							{
+								Name: "subcommand",
+								Out:  b,
+								Err:  b,
+								Run: func(command *Command) error {
+									command.Out.Write([]byte("subcommand ran"))
+									return nil
+								},
 							},
 						},
 					},
@@ -345,31 +345,31 @@ func TestInterface_Exec(t *testing.T) {
 		subject := &Interface{
 			Name: "test",
 			RootCommand: &Command{
-				Name: "",
+				Name: "test",
 				Out:  b,
 				Err:  b,
 				Run: func(command *Command) error {
 					command.Out.Write([]byte("root command ran"))
 					return nil
 				},
-			},
-			Commands: []*Command{
-				{
-					Name: "command",
-					Out:  b,
-					Err:  b,
-					Run: func(command *Command) error {
-						command.Out.Write([]byte("command ran"))
-						return nil
-					},
-					SubCommands: []*Command{
-						{
-							Name: "subcommand",
-							Out:  b,
-							Err:  b,
-							Run: func(command *Command) error {
-								command.Out.Write([]byte("subcommand ran"))
-								return nil
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Out:  b,
+						Err:  b,
+						Run: func(command *Command) error {
+							command.Out.Write([]byte("command ran"))
+							return nil
+						},
+						SubCommands: []*Command{
+							{
+								Name: "subcommand",
+								Out:  b,
+								Err:  b,
+								Run: func(command *Command) error {
+									command.Out.Write([]byte("subcommand ran"))
+									return nil
+								},
 							},
 						},
 					},
@@ -441,12 +441,26 @@ func TestInterface_Exec_error(t *testing.T) {
 		want := ErrNoOp
 		subject := &Interface{
 			Name: "test",
-			Commands: []*Command{
-				{
-					Name: "command",
-					Run: func(command *Command) error {
-						t.Error("unexpected command run")
-						return nil
+		}
+		got := subject.Exec([]string{"test", "nope"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate interface returns error if invalid command called and root not runnable - no flag", func(t *testing.T) {
+		want := ErrCommandNotRunnable
+		subject := &Interface{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Run: func(command *Command) error {
+							t.Error("unexpected command run")
+							return nil
+						},
 					},
 				},
 			},
@@ -461,12 +475,15 @@ func TestInterface_Exec_error(t *testing.T) {
 		want := ErrCommandNotFound
 		subject := &Interface{
 			Name: "test",
-			Commands: []*Command{
-				{
-					Name: "command",
-					Run: func(command *Command) error {
-						t.Error("unexpected command run")
-						return nil
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Run: func(command *Command) error {
+							t.Error("unexpected command run")
+							return nil
+						},
 					},
 				},
 			},
@@ -481,19 +498,22 @@ func TestInterface_Exec_error(t *testing.T) {
 		want := ErrCommandNotFound
 		subject := &Interface{
 			Name: "test",
-			Commands: []*Command{
-				{
-					Name: "command",
-					Run: func(command *Command) error {
-						t.Error("unexpected command run")
-						return nil
-					},
-					SubCommands: []*Command{
-						{
-							Name: "subcommand",
-							Run: func(command *Command) error {
-								t.Error("unexpected subcommand run")
-								return nil
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Run: func(command *Command) error {
+							t.Error("unexpected command run")
+							return nil
+						},
+						SubCommands: []*Command{
+							{
+								Name: "subcommand",
+								Run: func(command *Command) error {
+									t.Error("unexpected subcommand run")
+									return nil
+								},
 							},
 						},
 					},
@@ -510,19 +530,22 @@ func TestInterface_Exec_error(t *testing.T) {
 		want := ErrCommandNotFound
 		subject := &Interface{
 			Name: "test",
-			Commands: []*Command{
-				{
-					Name: "command",
-					Run: func(command *Command) error {
-						t.Error("unexpected command run")
-						return nil
-					},
-					SubCommands: []*Command{
-						{
-							Name: "subcommand",
-							Run: func(command *Command) error {
-								t.Error("unexpected subcommand run")
-								return nil
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Run: func(command *Command) error {
+							t.Error("unexpected command run")
+							return nil
+						},
+						SubCommands: []*Command{
+							{
+								Name: "subcommand",
+								Run: func(command *Command) error {
+									t.Error("unexpected subcommand run")
+									return nil
+								},
 							},
 						},
 					},
@@ -539,19 +562,22 @@ func TestInterface_Exec_error(t *testing.T) {
 		want := ErrCommandDepthInvalid
 		subject := &Interface{
 			Name: "test",
-			Commands: []*Command{
-				{
-					Name: "command",
-					Run: func(command *Command) error {
-						t.Error("unexpected command run")
-						return nil
-					},
-					SubCommands: []*Command{
-						{
-							Name: "subcommand",
-							Run: func(command *Command) error {
-								t.Error("unexpected subcommand run")
-								return nil
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Run: func(command *Command) error {
+							t.Error("unexpected command run")
+							return nil
+						},
+						SubCommands: []*Command{
+							{
+								Name: "subcommand",
+								Run: func(command *Command) error {
+									t.Error("unexpected subcommand run")
+									return nil
+								},
 							},
 						},
 					},
@@ -570,19 +596,22 @@ func TestInterface_findCommand(t *testing.T) {
 		want := &Command{Name: "command2"}
 		subject := &Interface{
 			Name: "test",
-			Commands: []*Command{
-				{
-					Name: "command",
-				},
-				{
-					Name: "command2",
-				},
-				{
-					Name: "command3",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+					},
+					{
+						Name: "command2",
+					},
+					{
+						Name: "command3",
+					},
 				},
 			},
 		}
-		got, found := subject.findCommand("command2")
+		got, found := subject.RootCommand.findSubCommand("command2")
 		if !found {
 			t.Errorf("want true, got %t", found)
 		}
@@ -595,21 +624,24 @@ func TestInterface_findCommand(t *testing.T) {
 		want := &Command{Name: "command2", Aliases: []string{"heyo"}}
 		subject := &Interface{
 			Name: "test",
-			Commands: []*Command{
-				{
-					Name:    "command",
-					Aliases: []string{"nope"},
-				},
-				{
-					Name:    "command2",
-					Aliases: []string{"heyo"},
-				},
-				{
-					Name: "command3",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name:    "command",
+						Aliases: []string{"nope"},
+					},
+					{
+						Name:    "command2",
+						Aliases: []string{"heyo"},
+					},
+					{
+						Name: "command3",
+					},
 				},
 			},
 		}
-		got, found := subject.findCommand("heyo")
+		got, found := subject.RootCommand.findSubCommand("heyo")
 		if !found {
 			t.Errorf("want true, got %t", found)
 		}
@@ -621,19 +653,22 @@ func TestInterface_findCommand(t *testing.T) {
 	t.Run("validate command is not found", func(t *testing.T) {
 		subject := &Interface{
 			Name: "test",
-			Commands: []*Command{
-				{
-					Name: "command",
-				},
-				{
-					Name: "command2",
-				},
-				{
-					Name: "command3",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+					},
+					{
+						Name: "command2",
+					},
+					{
+						Name: "command3",
+					},
 				},
 			},
 		}
-		got, found := subject.findCommand("nope")
+		got, found := subject.RootCommand.findSubCommand("nope")
 		if found {
 			t.Errorf("want false, got %t", found)
 		}
