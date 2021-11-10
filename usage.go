@@ -38,7 +38,7 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 		for _, subcommand := range command.SubCommands {
 			if !subcommand.Secret {
 				if !wroteHeader {
-					builder.WriteString("\nSUBCOMMANDS:\n")
+					builder.WriteString("\nCOMMANDS:\n")
 					wroteHeader = true
 				}
 				builder.WriteString(fmt.Sprintf("%s\t%s\n", subcommand.Name, subcommand.Description))

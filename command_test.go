@@ -21,9 +21,6 @@ func Test_NewCommand(t *testing.T) {
 		if got.Name != wantName {
 			t.Errorf("want %s, got %s", wantName, got.Name)
 		}
-		if got.Path != wantName {
-			t.Errorf("want %s, got %s", wantName, got.Path)
-		}
 		if got.Flags.Name() != wantName {
 			t.Errorf("want %s, got %s", wantName, got.Flags.Name())
 		}
@@ -35,28 +32,6 @@ func Test_NewCommand(t *testing.T) {
 		}
 		if got.Usage == nil {
 			t.Error("want DefaultCommandUsageFunc, got nil")
-		}
-	})
-}
-
-func TestCommand_AddSubCommand(t *testing.T) {
-	t.Run("validate add subcommand", func(t *testing.T) {
-		wantPath := "root command"
-		wantLen := 1
-		rootCommand := &Command{
-			Name: "root",
-			Path: "root",
-		}
-		subject := &Command{
-			Name: "command",
-			Path: "command",
-		}
-		rootCommand.AddSubCommand(subject)
-		if len(rootCommand.SubCommands) != wantLen {
-			t.Errorf("want %d, got %d", wantLen, len(rootCommand.SubCommands))
-		}
-		if subject.Path != wantPath {
-			t.Errorf("want %s, got %s", wantPath, subject.Path)
 		}
 	})
 }

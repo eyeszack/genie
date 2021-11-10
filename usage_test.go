@@ -32,7 +32,7 @@ FLAGS:
   -v
 		this is another testing flag (default false)
 
-SUBCOMMANDS:
+COMMANDS:
 subcommand	The test command subcommand.
 `
 		subject := &Command{
@@ -94,7 +94,7 @@ FLAGS:
   --verbose -v
 		this is another testing flag (default false)
 
-SUBCOMMANDS:
+COMMANDS:
 subcommand	The test command subcommand.
 `
 		subject := &Command{
