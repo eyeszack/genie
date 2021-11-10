@@ -591,6 +591,33 @@ func TestInterface_findCommand(t *testing.T) {
 		}
 	})
 
+	t.Run("validate command is found with alias", func(t *testing.T) {
+		want := &Command{Name: "command2", Aliases: []string{"heyo"}}
+		subject := &Interface{
+			Name: "test",
+			Commands: []*Command{
+				{
+					Name:    "command",
+					Aliases: []string{"nope"},
+				},
+				{
+					Name:    "command2",
+					Aliases: []string{"heyo"},
+				},
+				{
+					Name: "command3",
+				},
+			},
+		}
+		got, found := subject.findCommand("heyo")
+		if !found {
+			t.Errorf("want true, got %t", found)
+		}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("want %v, got %v", want, got)
+		}
+	})
+
 	t.Run("validate command is not found", func(t *testing.T) {
 		subject := &Interface{
 			Name: "test",

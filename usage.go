@@ -34,9 +34,15 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 	}
 
 	if len(command.SubCommands) > 0 {
-		builder.WriteString("\nSUBCOMMANDS:\n")
+		wroteHeader := false
 		for _, subcommand := range command.SubCommands {
-			builder.WriteString(fmt.Sprintf("%s\t%s\n", subcommand.Name, subcommand.Description))
+			if !subcommand.Secret {
+				if !wroteHeader {
+					builder.WriteString("\nSUBCOMMANDS:\n")
+					wroteHeader = true
+				}
+				builder.WriteString(fmt.Sprintf("%s\t%s\n", subcommand.Name, subcommand.Description))
+			}
 		}
 		//add this back if default --help logic is added
 		//builder.WriteString("\nUse \"--help\" with any command or subcommand for more information.\n")
@@ -49,7 +55,6 @@ func mergeFlagsUsage(flags *flag.FlagSet) string {
 
 	var builder strings.Builder
 	if flags != nil {
-		builder.WriteString("\nFLAGS:\n")
 		flags.VisitAll(func(f *flag.Flag) {
 			defaultVal := ""
 			if f.DefValue != "" {
@@ -101,6 +106,10 @@ func mergeFlagsUsage(flags *flag.FlagSet) string {
 		return sorted[i] < sorted[j]
 	})
 
+	if len(sorted) > 0 {
+		builder.WriteString("\nFLAGS:\n")
+	}
+
 	for _, s := range sorted {
 		builder.WriteString(s)
 	}
@@ -109,10 +118,12 @@ func mergeFlagsUsage(flags *flag.FlagSet) string {
 }
 
 func flagsUsage(flags *flag.FlagSet) string {
+	flagCount := 0
 	var builder strings.Builder
 	if flags != nil {
 		builder.WriteString("\nFLAGS:\n")
 		flags.VisitAll(func(f *flag.Flag) {
+			flagCount++
 			defaultVal := ""
 			if f.DefValue != "" {
 				defaultVal = fmt.Sprintf(" (default %s)", f.DefValue)
@@ -141,6 +152,10 @@ func flagsUsage(flags *flag.FlagSet) string {
 			builder.WriteString(fmt.Sprintf("  %s%s%s\n", dashes, f.Name, typeOf))
 			builder.WriteString(fmt.Sprintf("\t\t%s%s\n", f.Usage, defaultVal))
 		})
+	}
+
+	if flagCount == 0 {
+		return ""
 	}
 
 	return builder.String()

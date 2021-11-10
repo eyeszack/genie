@@ -140,6 +140,12 @@ func (c *Interface) findCommand(name string) (*Command, bool) {
 		if name == command.Name {
 			return command, true
 		}
+
+		for _, alias := range command.Aliases {
+			if name == alias {
+				return command, true
+			}
+		}
 	}
 
 	return nil, false

@@ -131,6 +131,32 @@ func TestCommand_findSubCommand(t *testing.T) {
 		}
 	})
 
+	t.Run("validate subcommand is found with alias", func(t *testing.T) {
+		want := &Command{Name: "subcommand", Aliases: []string{"me"}}
+		subject := &Command{
+			Name: "command",
+			SubCommands: []*Command{
+				{
+					Name:    "subcommand",
+					Aliases: []string{"me"},
+				},
+				{
+					Name:    "subcommandTwo",
+					Aliases: []string{"nope"},
+				},
+			},
+		}
+
+		got, found := subject.findSubCommand("me")
+		if !found {
+			t.Error("want true, got false")
+		}
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("want %v, got %v", want, got)
+		}
+	})
+
 	t.Run("validate subcommand is not found", func(t *testing.T) {
 		subject := &Command{
 			Name: "command",

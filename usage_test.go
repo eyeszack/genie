@@ -41,12 +41,18 @@ subcommand	The test command subcommand.
 			Description: "The test command is for testing.",
 			ExtraInfo: `HEADING:
 This can be used to provide all kinds of extra usage info.`,
-			Flags: flag.NewFlagSet("command", flag.ContinueOnError),
+			Flags: flag.NewFlagSet("command", flag.ExitOnError),
 			SubCommands: []*Command{
 				{
 					Name:        "subcommand",
 					RunSyntax:   "test command subcommand [-flags...] [args...]",
 					Description: "The test command subcommand.",
+				},
+				{
+					Name:        "shhh",
+					RunSyntax:   "test command shhh [-flags...] [args...]",
+					Description: "shhh.",
+					Secret:      true,
 				},
 			},
 			Usage: DefaultCommandUsageFunc,
@@ -97,7 +103,7 @@ subcommand	The test command subcommand.
 			Description: "The test command is for testing.",
 			ExtraInfo: `HEADING:
 This can be used to provide all kinds of extra usage info.`,
-			Flags: flag.NewFlagSet("command", flag.ContinueOnError),
+			Flags: flag.NewFlagSet("command", flag.ExitOnError),
 			SubCommands: []*Command{
 				{
 					Name:        "subcommand",
@@ -167,6 +173,21 @@ FLAGS:
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
+
+	t.Run("validate default usage - empty flags & secret command", func(t *testing.T) {
+		want := `The test command is for testing.
+
+USAGE:
+command
+`
+		subject := NewCommand("command")
+		subject.Description = "The test command is for testing."
+		subject.SubCommands = []*Command{{Name: "supersecret", Description: "I'm not known.", Secret: true}}
+		got := subject.Usage(subject)
 		if string(got) != want {
 			t.Errorf("want: %s, got %s", want, string(got))
 		}

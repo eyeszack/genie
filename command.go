@@ -19,6 +19,7 @@ type UsageFunc func(command *Command) string
 //Command represents a command or subcommand of the interface.
 type Command struct {
 	Name           string
+	Aliases        []string
 	RunSyntax      string
 	Description    string
 	ExtraInfo      string
@@ -30,13 +31,14 @@ type Command struct {
 	Run            RunFunc
 	Usage          UsageFunc
 	MergeFlagUsage bool
+	Secret         bool
 }
 
 //NewCommand returns a Command with sensible defaults.
 func NewCommand(name string) *Command {
 	c := &Command{
 		Name:  name,
-		Flags: flag.NewFlagSet(name, flag.ContinueOnError),
+		Flags: flag.NewFlagSet(name, flag.ExitOnError),
 		Out:   os.Stdout,
 		Err:   os.Stderr,
 		Usage: DefaultCommandUsageFunc,
@@ -68,6 +70,12 @@ func (c *Command) findSubCommand(name string) (*Command, bool) {
 	for _, command := range c.SubCommands {
 		if name == command.Name {
 			return command, true
+		}
+
+		for _, alias := range command.Aliases {
+			if name == alias {
+				return command, true
+			}
 		}
 	}
 
