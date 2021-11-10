@@ -30,19 +30,14 @@ type Interface struct {
 }
 
 //NewInterface returns an Interface with sensible defaults.
-func NewInterface(name, version string, withRoot bool) *Interface {
-	i := &Interface{
-		Name:    name,
-		Out:     os.Stdout,
-		Err:     os.Stderr,
-		Version: version,
+func NewInterface(name, version string) *Interface {
+	return &Interface{
+		Name:        name,
+		RootCommand: NewCommand(name),
+		Out:         os.Stdout,
+		Err:         os.Stderr,
+		Version:     version,
 	}
-
-	if withRoot {
-		i.RootCommand = NewCommand(name)
-	}
-
-	return i
 }
 
 //Exec executes the Interface with the provided arguments.
@@ -52,10 +47,12 @@ func (c *Interface) Exec(args []string) error {
 		return ErrNoOp
 	}
 
+	//no args will return an error, but some folks may not care
 	if len(args) <= 0 {
 		return ErrNoArgs
 	}
 
+	//this could happen if the root command is misnamed, maybe in the future we can ignore
 	if args[0] != c.Name || strings.HasPrefix(args[0], "-") {
 		return ErrInvalidInterfaceName
 	}
@@ -65,7 +62,9 @@ func (c *Interface) Exec(args []string) error {
 		return c.RootCommand.run([]string{})
 	}
 
-	//there are more than enough args to check for flags etc....
+	//------------------------------------------------------------------------
+	//at this point there are more than enough args to check for flags etc....
+	//------------------------------------------------------------------------
 
 	flagStart, hasFlags := c.hasFlags(args)
 
@@ -81,7 +80,7 @@ func (c *Interface) Exec(args []string) error {
 			//calling interface
 			return c.RootCommand.run(args[flagStart:])
 		case 2:
-			//calling a command
+			//calling a command (technically a subcommand on root)
 			command, found := c.RootCommand.findSubCommand(args[1])
 			if !found {
 				return ErrCommandNotFound
@@ -89,12 +88,13 @@ func (c *Interface) Exec(args []string) error {
 
 			return command.run(args[flagStart:])
 		case 3:
-			//calling a subcommand
+			//calling a subcommand so first find command
 			command, found := c.RootCommand.findSubCommand(args[1])
 			if !found {
 				return ErrCommandNotFound
 			}
 
+			//then find the subcommand
 			subcommand, found := command.findSubCommand(args[2])
 			if !found {
 				return ErrCommandNotFound
@@ -104,9 +104,9 @@ func (c *Interface) Exec(args []string) error {
 		}
 	}
 
-	//------
+	//----------------------------------------------------------------------------
 	//no flags were provided so we run things a little differently, less structure
-	//-----
+	//----------------------------------------------------------------------------
 
 	//we may have a command provided
 	command, found := c.RootCommand.findSubCommand(args[1])
@@ -119,10 +119,11 @@ func (c *Interface) Exec(args []string) error {
 			}
 		}
 
-		//no subcommand found or requested
+		//no subcommand found or requested, so run the command we found
 		return command.run(args[2:])
 	}
 
+	//no command or subcommand found so run root
 	return c.RootCommand.run(args[1:])
 }
 

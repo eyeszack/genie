@@ -22,29 +22,7 @@ func Test_NewInterface(t *testing.T) {
 	t.Run("validate new", func(t *testing.T) {
 		wantName := "tester"
 		wantVersion := "0.0.0"
-		got := NewInterface(wantName, wantVersion, false)
-		if got == nil {
-			t.Fatal("want interface, got nil")
-		}
-
-		if got.Name != wantName {
-			t.Errorf("want %s, got %s", wantName, got.Name)
-		}
-		if got.Version != wantVersion {
-			t.Errorf("want %s, got %s", wantVersion, got.Version)
-		}
-		if got.Out != os.Stdout {
-			t.Errorf("want %v, got %v", os.Stdout, got.Out)
-		}
-		if got.Out != os.Stdout {
-			t.Errorf("want %v, got %v", os.Stdout, got.Out)
-		}
-	})
-
-	t.Run("validate new, with root command", func(t *testing.T) {
-		wantName := "tester"
-		wantVersion := "0.0.0"
-		got := NewInterface(wantName, wantVersion, true)
+		got := NewInterface(wantName, wantVersion)
 		if got == nil {
 			t.Fatal("want interface, got nil")
 		}
