@@ -397,6 +397,9 @@ func TestInterface_Exec_error(t *testing.T) {
 		want := ErrNoArgs
 		subject := &Interface{
 			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+			},
 		}
 		got := subject.Exec(nil)
 		if got != want {
@@ -419,19 +422,11 @@ func TestInterface_Exec_error(t *testing.T) {
 		want := ErrInvalidInterfaceName
 		subject := &Interface{
 			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+			},
 		}
 		got := subject.Exec([]string{"nottest"})
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
-		}
-	})
-
-	t.Run("validate interface returns error if flags passed and no root command", func(t *testing.T) {
-		want := ErrInvalidSyntax
-		subject := &Interface{
-			Name: "test",
-		}
-		got := subject.Exec([]string{"test", "-flag", "value"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}

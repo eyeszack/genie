@@ -47,6 +47,11 @@ func NewInterface(name, version string, withRoot bool) *Interface {
 
 //Exec executes the Interface with the provided arguments.
 func (c *Interface) Exec(args []string) error {
+	//if we have no root command there is nothing we can do
+	if c.RootCommand == nil {
+		return ErrNoOp
+	}
+
 	if len(args) <= 0 {
 		return ErrNoArgs
 	}
@@ -57,11 +62,7 @@ func (c *Interface) Exec(args []string) error {
 
 	//just the interface was provided so run root command if available
 	if len(args) == 1 {
-		if c.RootCommand != nil {
-			return c.RootCommand.run([]string{})
-		}
-
-		return ErrNoOp
+		return c.RootCommand.run([]string{})
 	}
 
 	//there are more than enough args to check for flags etc....
@@ -78,10 +79,6 @@ func (c *Interface) Exec(args []string) error {
 		switch flagStart {
 		case 1:
 			//calling interface
-			if c.RootCommand == nil {
-				return ErrInvalidSyntax
-			}
-
 			return c.RootCommand.run(args[flagStart:])
 		case 2:
 			//calling a command
@@ -110,9 +107,6 @@ func (c *Interface) Exec(args []string) error {
 	//------
 	//no flags were provided so we run things a little differently, less structure
 	//-----
-	if c.RootCommand == nil {
-		return ErrNoOp
-	}
 
 	//we may have a command provided
 	command, found := c.RootCommand.findSubCommand(args[1])
