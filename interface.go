@@ -22,23 +22,25 @@ var (
 
 //Interface is a very simple representation of a Command Line Interface or any Interface with commands.
 type Interface struct {
-	Name         string
-	RootCommand  *Command
-	Out          io.Writer
-	Err          io.Writer
-	Version      string
-	SilenceFlags bool
+	Name            string
+	RootCommand     *Command
+	Out             io.Writer
+	Err             io.Writer
+	Version         string
+	SilenceFlags    bool
+	MaxCommandDepth int
 }
 
 //NewInterface returns an Interface with sensible defaults.
 func NewInterface(name, version string, silenceFlags bool) *Interface {
 	return &Interface{
-		Name:         name,
-		RootCommand:  NewCommand(name, silenceFlags),
-		Out:          os.Stdout,
-		Err:          os.Stderr,
-		Version:      version,
-		SilenceFlags: silenceFlags,
+		Name:            name,
+		RootCommand:     NewCommand(name, silenceFlags),
+		Out:             os.Stdout,
+		Err:             os.Stderr,
+		Version:         version,
+		SilenceFlags:    silenceFlags,
+		MaxCommandDepth: 3,
 	}
 }
 
@@ -86,8 +88,7 @@ func (c *Interface) Exec(args []string) error {
 
 	//it's ok to not have flags, but if we do we assume a little structure
 	if hasFlags {
-		//for now we only allow max depth of 3 (e.g. interface command command -flag value)
-		if flagStart > 3 {
+		if flagStart > c.MaxCommandDepth {
 			return ErrCommandDepthInvalid
 		}
 
@@ -112,6 +113,9 @@ func (c *Interface) Exec(args []string) error {
 	//we may have a command provided
 	command, found, position := c.searchPathForCommand(args[1:], true)
 	if found {
+		if position+2 > c.MaxCommandDepth {
+			return ErrCommandDepthInvalid
+		}
 		return command.run(args[position+2:])
 	}
 

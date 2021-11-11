@@ -178,8 +178,9 @@ func TestInterface_Exec(t *testing.T) {
 					return nil
 				},
 			},
-			Out: b,
-			Err: b,
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
 		}
 		err := subject.Exec([]string{"test"})
 		if err != nil {
@@ -208,8 +209,9 @@ func TestInterface_Exec(t *testing.T) {
 					return nil
 				},
 			},
-			Out: b,
-			Err: b,
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
 		}
 		err := subject.Exec([]string{"test", "notaflag", "notasubcommand"})
 		if err != nil {
@@ -238,8 +240,9 @@ func TestInterface_Exec(t *testing.T) {
 					return nil
 				},
 			},
-			Out: b,
-			Err: b,
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
 		}
 		err := subject.Exec([]string{"test"})
 		if err != nil {
@@ -268,8 +271,9 @@ func TestInterface_Exec(t *testing.T) {
 					return nil
 				},
 			},
-			Out: b,
-			Err: b,
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
 		}
 		err := subject.Exec([]string{"test", "-flag", "value"})
 		if err != nil {
@@ -309,8 +313,9 @@ func TestInterface_Exec(t *testing.T) {
 					},
 				},
 			},
-			Out: b,
-			Err: b,
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
 		}
 		err := subject.Exec([]string{"test", "command"})
 		if err != nil {
@@ -350,8 +355,9 @@ func TestInterface_Exec(t *testing.T) {
 					},
 				},
 			},
-			Out: b,
-			Err: b,
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
 		}
 		err := subject.Exec([]string{"test", "command", "-flag", "value"})
 		if err != nil {
@@ -413,8 +419,9 @@ func TestInterface_Exec(t *testing.T) {
 					},
 				},
 			},
-			Out: b,
-			Err: b,
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
 		}
 		err := subject.Exec([]string{"test", "command", "subcommand", "immaarg", "metoo"})
 		if err != nil {
@@ -475,8 +482,9 @@ func TestInterface_Exec(t *testing.T) {
 					},
 				},
 			},
-			Out: b,
-			Err: b,
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
 		}
 		err := subject.Exec([]string{"test", "command", "subcommand", "-flag", "value"})
 		if err != nil {
@@ -500,6 +508,7 @@ func TestInterface_Exec_error(t *testing.T) {
 			RootCommand: &Command{
 				Name: "test",
 			},
+			MaxCommandDepth: 3,
 		}
 		got := subject.Exec(nil)
 		if got != want {
@@ -510,7 +519,8 @@ func TestInterface_Exec_error(t *testing.T) {
 	t.Run("validate interface returns error if noop state", func(t *testing.T) {
 		want := ErrNoOp
 		subject := &Interface{
-			Name: "test",
+			Name:            "test",
+			MaxCommandDepth: 3,
 		}
 		got := subject.Exec([]string{"test"})
 		if got != want {
@@ -525,6 +535,7 @@ func TestInterface_Exec_error(t *testing.T) {
 			RootCommand: &Command{
 				Name: "test",
 			},
+			MaxCommandDepth: 3,
 		}
 		got := subject.Exec([]string{"nottest"})
 		if got != want {
@@ -535,7 +546,8 @@ func TestInterface_Exec_error(t *testing.T) {
 	t.Run("validate interface returns error if invalid command called (noop) - no flag", func(t *testing.T) {
 		want := ErrNoOp
 		subject := &Interface{
-			Name: "test",
+			Name:            "test",
+			MaxCommandDepth: 3,
 		}
 		got := subject.Exec([]string{"test", "nope"})
 		if got != want {
@@ -559,6 +571,7 @@ func TestInterface_Exec_error(t *testing.T) {
 					},
 				},
 			},
+			MaxCommandDepth: 3,
 		}
 		got := subject.Exec([]string{"test", "nope"})
 		if got != want {
@@ -578,6 +591,7 @@ func TestInterface_Exec_error(t *testing.T) {
 					},
 				},
 			},
+			MaxCommandDepth: 3,
 		}
 		got := subject.Exec([]string{"test", "command", "nope"})
 		if got != want {
@@ -601,6 +615,7 @@ func TestInterface_Exec_error(t *testing.T) {
 					},
 				},
 			},
+			MaxCommandDepth: 3,
 		}
 		got := subject.Exec([]string{"test", "nope", "-flag", "value"})
 		if got != want {
@@ -633,6 +648,7 @@ func TestInterface_Exec_error(t *testing.T) {
 					},
 				},
 			},
+			MaxCommandDepth: 3,
 		}
 		got := subject.Exec([]string{"test", "command", "nope", "-flag", "value"})
 		if got != want {
@@ -665,6 +681,7 @@ func TestInterface_Exec_error(t *testing.T) {
 					},
 				},
 			},
+			MaxCommandDepth: 3,
 		}
 		got := subject.Exec([]string{"test", "nope", "subcommand", "-flag", "value"})
 		if got != want {
@@ -672,7 +689,7 @@ func TestInterface_Exec_error(t *testing.T) {
 		}
 	})
 
-	t.Run("validate interface returns error if command depth invalid", func(t *testing.T) {
+	t.Run("validate interface returns error if command depth invalid - flags", func(t *testing.T) {
 		want := ErrCommandDepthInvalid
 		subject := &Interface{
 			Name: "test",
@@ -697,8 +714,47 @@ func TestInterface_Exec_error(t *testing.T) {
 					},
 				},
 			},
+			MaxCommandDepth: 3,
 		}
 		got := subject.Exec([]string{"test", "command", "subcommand", "subsubcommand", "-flag", "value"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate interface returns error if command depth invalid - no flags", func(t *testing.T) {
+		want := ErrCommandDepthInvalid
+		subject := &Interface{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Run: func(command *Command) error {
+							t.Error("unexpected command run")
+							return nil
+						},
+						SubCommands: []*Command{
+							{
+								Name: "subcommand",
+								Run: func(command *Command) error {
+									t.Error("unexpected subcommand run")
+									return nil
+								},
+								SubCommands: []*Command{
+									{
+										Name: "subsubcommand",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			MaxCommandDepth: 3,
+		}
+		got := subject.Exec([]string{"test", "command", "subcommand", "subsubcommand", "arg1", "arg2"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
