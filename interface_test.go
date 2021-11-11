@@ -664,7 +664,7 @@ func TestInterface_Exec_error(t *testing.T) {
 	})
 }
 
-func TestInterface_findCommand(t *testing.T) {
+func TestInterface_searchPathForCommand(t *testing.T) {
 	t.Run("validate command is found", func(t *testing.T) {
 		want := &Command{Name: "command2"}
 		subject := &Interface{
@@ -684,7 +684,56 @@ func TestInterface_findCommand(t *testing.T) {
 				},
 			},
 		}
-		got, found := subject.RootCommand.findSubCommand("command2")
+		got, found := subject.searchPathForCommand([]string{"command2"})
+		if !found {
+			t.Errorf("want true, got %t", found)
+		}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("want %v, got %v", want, got)
+		}
+	})
+
+	t.Run("validate command is found - deep", func(t *testing.T) {
+		want := &Command{Name: "dang", Description: "It's me you're looking for."}
+		subject := &Interface{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						SubCommands: []*Command{
+							{
+								Name: "subcommand",
+							},
+						},
+					},
+					{
+						Name: "command2",
+						SubCommands: []*Command{
+							{
+								Name: "subcommand2",
+								SubCommands: []*Command{
+									{
+										Name: "subsubcommand3",
+										SubCommands: []*Command{
+											{
+												Name:        "dang",
+												Description: "It's me you're looking for.",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						Name: "command3",
+					},
+				},
+			},
+		}
+		got, found := subject.searchPathForCommand([]string{"command2", "subcommand2", "subsubcommand3", "dang"})
 		if !found {
 			t.Errorf("want true, got %t", found)
 		}
@@ -714,7 +763,7 @@ func TestInterface_findCommand(t *testing.T) {
 				},
 			},
 		}
-		got, found := subject.RootCommand.findSubCommand("heyo")
+		got, found := subject.searchPathForCommand([]string{"heyo"})
 		if !found {
 			t.Errorf("want true, got %t", found)
 		}
@@ -741,7 +790,7 @@ func TestInterface_findCommand(t *testing.T) {
 				},
 			},
 		}
-		got, found := subject.RootCommand.findSubCommand("nope")
+		got, found := subject.searchPathForCommand([]string{"nope"})
 		if found {
 			t.Errorf("want false, got %t", found)
 		}

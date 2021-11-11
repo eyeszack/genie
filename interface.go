@@ -95,28 +95,35 @@ func (c *Interface) Exec(args []string) error {
 		case 1:
 			//calling interface
 			return c.RootCommand.run(args[flagStart:])
-		case 2:
-			//calling a command (technically a subcommand on root)
-			command, found := c.RootCommand.findSubCommand(args[1])
+		default:
+			command, found := c.searchPathForCommand(args[1:flagStart])
 			if !found {
 				return ErrCommandNotFound
 			}
 
 			return command.run(args[flagStart:])
-		case 3:
-			//calling a subcommand so first find command
-			command, found := c.RootCommand.findSubCommand(args[1])
-			if !found {
-				return ErrCommandNotFound
-			}
+			/*case 2:
+				//calling a command (technically a subcommand on root)
+				command, found := c.RootCommand.findSubCommand(args[1])
+				if !found {
+					return ErrCommandNotFound
+				}
 
-			//then find the subcommand
-			subcommand, found := command.findSubCommand(args[2])
-			if !found {
-				return ErrCommandNotFound
-			}
+				return command.run(args[flagStart:])
+			case 3:
+				//calling a subcommand so first find command
+				command, found := c.RootCommand.findSubCommand(args[1])
+				if !found {
+					return ErrCommandNotFound
+				}
 
-			return subcommand.run(args[flagStart:])
+				//then find the subcommand
+				subcommand, found := command.findSubCommand(args[2])
+				if !found {
+					return ErrCommandNotFound
+				}
+
+				return subcommand.run(args[flagStart:])*/
 		}
 	}
 
@@ -151,4 +158,24 @@ func (c *Interface) hasFlags(args []string) (int, bool) {
 	}
 
 	return -1, false
+}
+
+func (c *Interface) searchPathForCommand(path []string) (*Command, bool) { //this is path excluding the interface name
+	var lastFound *Command
+	found := false
+	for i, pathPart := range path {
+		if i == 0 {
+			lastFound, found = c.RootCommand.findSubCommand(pathPart)
+			if !found {
+				return nil, false
+			}
+		} else {
+			lastFound, found = lastFound.findSubCommand(pathPart)
+			if !found {
+				return nil, false
+			}
+		}
+	}
+
+	return lastFound, found
 }
