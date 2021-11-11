@@ -10,10 +10,29 @@ import (
 	"testing"
 )
 
+func Test_NoopUsage(t *testing.T) {
+	t.Run("validate noopusage does nothing", func(t *testing.T) {
+		NoopUsage()
+	})
+}
+
+func TestNoopWriter_Write(t *testing.T) {
+	t.Run("validate noop does nothing", func(t *testing.T) {
+		subject := NoopWriter{}
+		got, err := subject.Write([]byte("hello everybody"))
+		if err != nil {
+			t.Errorf("want nil, got %s", err)
+		}
+		if got != 0 {
+			t.Errorf("want 0, got %d", got)
+		}
+	})
+}
+
 func Test_NewCommand(t *testing.T) {
-	t.Run("validate new", func(t *testing.T) {
+	t.Run("validate new - silence false", func(t *testing.T) {
 		wantName := "tester"
-		got := NewCommand(wantName)
+		got := NewCommand(wantName, false)
 		if got == nil {
 			t.Fatal("want command, got nil")
 		}
@@ -32,6 +51,39 @@ func Test_NewCommand(t *testing.T) {
 		}
 		if got.Usage == nil {
 			t.Error("want DefaultCommandUsageFunc, got nil")
+		}
+		if got.Flags.ErrorHandling() != flag.ExitOnError {
+			t.Errorf("want %d, got %d", flag.ExitOnError, got.Flags.ErrorHandling())
+		}
+	})
+
+	t.Run("validate new - silence true", func(t *testing.T) {
+		wantName := "tester"
+		got := NewCommand(wantName, true)
+		if got == nil {
+			t.Fatal("want command, got nil")
+		}
+
+		if got.Name != wantName {
+			t.Errorf("want %s, got %s", wantName, got.Name)
+		}
+		if got.Flags.Name() != wantName {
+			t.Errorf("want %s, got %s", wantName, got.Flags.Name())
+		}
+		if got.Out != os.Stdout {
+			t.Errorf("want %v, got %v", os.Stdout, got.Out)
+		}
+		if got.Err != os.Stderr {
+			t.Errorf("want %v, got %v", os.Stderr, got.Err)
+		}
+		if got.Usage == nil {
+			t.Error("want DefaultCommandUsageFunc, got nil")
+		}
+		if got.Flags.ErrorHandling() != flag.ContinueOnError {
+			t.Errorf("want %d, got %d", flag.ContinueOnError, got.Flags.ErrorHandling())
+		}
+		if reflect.TypeOf(got.Flags.Output()) != reflect.TypeOf(&NoopWriter{}) {
+			t.Errorf("want %T, got %T", &NoopWriter{}, got.Flags.Output())
 		}
 	})
 }
@@ -277,6 +329,44 @@ func TestCommand_run(t *testing.T) {
 		got := subject.run([]string{"-flag", "value"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate command run returns flag errors when silence flags is true", func(t *testing.T) {
+		want := errors.New("flag provided but not defined: -flag")
+		subject := NewCommand("silenced", true)
+		subject.Run = func(command *Command) error {
+			return nil
+		}
+		got := subject.run([]string{"-flag", "value"})
+		if got.Error() != want.Error() {
+			t.Errorf("want %s, got %s", want.Error(), got.Error())
+		}
+	})
+
+	t.Run("validate command run returns nil when silence flags is true and -help is undefined but passed in", func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		want := `
+USAGE:
+silenced
+
+Use "--help" with any command for more information.
+`
+		subject := NewCommand("silenced", true)
+		subject.Out = b
+		subject.Run = func(command *Command) error {
+			return nil
+		}
+		err := subject.run([]string{"-help"})
+		if err != nil {
+			t.Errorf("want nil, got %s", err)
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
 		}
 	})
 }

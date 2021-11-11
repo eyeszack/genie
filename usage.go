@@ -44,9 +44,13 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 				builder.WriteString(fmt.Sprintf("%s\t%s\n", subcommand.Name, subcommand.Description))
 			}
 		}
-		//add this back if default --help logic is added
-		//builder.WriteString("\nUse \"--help\" with any command or subcommand for more information.\n")
 	}
+
+	//flagset automatically handles -help or -h so it's basically like having a help command for free
+	if command.Flags != nil {
+		builder.WriteString("\nUse \"--help\" with any command for more information.\n")
+	}
+
 	return builder.String()
 }
 

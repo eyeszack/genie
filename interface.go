@@ -22,21 +22,37 @@ var (
 
 //Interface is a very simple representation of a Command Line Interface or any Interface with commands.
 type Interface struct {
-	Name        string
-	RootCommand *Command
-	Out         io.Writer
-	Err         io.Writer
-	Version     string
+	Name         string
+	RootCommand  *Command
+	Out          io.Writer
+	Err          io.Writer
+	Version      string
+	SilenceFlags bool
 }
 
 //NewInterface returns an Interface with sensible defaults.
-func NewInterface(name, version string) *Interface {
+func NewInterface(name, version string, silenceFlags bool) *Interface {
 	return &Interface{
-		Name:        name,
-		RootCommand: NewCommand(name),
-		Out:         os.Stdout,
-		Err:         os.Stderr,
-		Version:     version,
+		Name:         name,
+		RootCommand:  NewCommand(name, silenceFlags),
+		Out:          os.Stdout,
+		Err:          os.Stderr,
+		Version:      version,
+		SilenceFlags: silenceFlags,
+	}
+}
+
+//SetWriters will set the out and err writers on the interface and all commands.
+//If either writer is nil this will not change current writer.
+func (c *Interface) SetWriters(o, e io.Writer) {
+	if o != nil {
+		c.Out = o
+		c.RootCommand.SetOut(o)
+	}
+
+	if e != nil {
+		c.Err = e
+		c.RootCommand.SetErr(e)
 	}
 }
 

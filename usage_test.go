@@ -34,6 +34,8 @@ FLAGS:
 
 COMMANDS:
 subcommand	The test command subcommand.
+
+Use "--help" with any command for more information.
 `
 		subject := &Command{
 			Name:        "command",
@@ -96,6 +98,8 @@ FLAGS:
 
 COMMANDS:
 subcommand	The test command subcommand.
+
+Use "--help" with any command for more information.
 `
 		subject := &Command{
 			Name:        "command",
@@ -162,8 +166,10 @@ command
 FLAGS:
   --testing string
 		this is a testing flag
+
+Use "--help" with any command for more information.
 `
-		subject := NewCommand("command")
+		subject := NewCommand("command", false)
 		subject.Description = "The test command is for testing."
 		subject.Err = b
 		subject.Flags.String("testing", "", "this is a testing flag")
@@ -183,8 +189,10 @@ FLAGS:
 
 USAGE:
 command
+
+Use "--help" with any command for more information.
 `
-		subject := NewCommand("command")
+		subject := NewCommand("command", false)
 		subject.Description = "The test command is for testing."
 		subject.SubCommands = []*Command{{Name: "supersecret", Description: "I'm not known.", Secret: true}}
 		got := subject.Usage(subject)

@@ -16,6 +16,16 @@ type RunFunc func(command *Command) error
 //UsageFunc is the function that will be called when the command is run.
 type UsageFunc func(command *Command) string
 
+//NoopUsage if used for usage silence.
+func NoopUsage() {}
+
+//NoopWriter is used to silence output.
+type NoopWriter struct{}
+
+func (n *NoopWriter) Write(b []byte) (int, error) {
+	return 0, nil
+}
+
 //Command represents a command or subcommand of the interface.
 type Command struct {
 	Name           string
@@ -31,23 +41,53 @@ type Command struct {
 	Run            RunFunc
 	Usage          UsageFunc
 	MergeFlagUsage bool
+	SilenceFlags   bool
 	Secret         bool
 }
 
 //NewCommand returns a Command with sensible defaults.
-func NewCommand(name string) *Command {
+func NewCommand(name string, silenceFlags bool) *Command {
 	c := &Command{
-		Name:  name,
-		Flags: flag.NewFlagSet(name, flag.ExitOnError),
-		Out:   os.Stdout,
-		Err:   os.Stderr,
-		Usage: DefaultCommandUsageFunc,
+		Name:         name,
+		Out:          os.Stdout,
+		Err:          os.Stderr,
+		Usage:        DefaultCommandUsageFunc,
+		SilenceFlags: silenceFlags,
 	}
-	c.Flags.Usage = func() {
-		fmt.Fprint(c.Err, DefaultCommandUsageFunc(c))
+
+	if silenceFlags {
+		//this allows for flag parsing errors to continue through to caller to handle what/if anything is output to user
+		c.Flags = flag.NewFlagSet(name, flag.ContinueOnError)
+		c.Flags.SetOutput(&NoopWriter{})
+		c.Flags.Usage = NoopUsage
+	} else {
+		c.Flags = flag.NewFlagSet(name, flag.ExitOnError)
+		c.Flags.Usage = func() {
+			fmt.Fprint(c.Err, DefaultCommandUsageFunc(c))
+		}
 	}
 
 	return c
+}
+
+//SetOut sets the command's output writer, and all of it's subcommand's as well.
+func (c *Command) SetOut(o io.Writer) {
+	c.Out = o
+	for _, sc := range c.SubCommands {
+		sc.SetOut(o)
+	}
+}
+
+//SetOut sets the command's error writer, flags output writer, and all of it's subcommand's as well.
+func (c *Command) SetErr(e io.Writer) {
+	c.Err = e
+	//if flags set and not noop via silenced, set output
+	if c.Flags != nil && !c.SilenceFlags {
+		c.Flags.SetOutput(e)
+	}
+	for _, sc := range c.SubCommands {
+		sc.SetErr(e)
+	}
 }
 
 //FlagWasProvided returns true if the flag was actually provided at execution time.
@@ -87,7 +127,17 @@ func (c *Command) run(args []string) error {
 		return ErrCommandNotRunnable
 	}
 	if c.Flags != nil {
-		c.Flags.Parse(args)
+		err := c.Flags.Parse(args)
+		//technically we'd not get here if flagset error handling is set to flag.ExitOnError, or flag.PanicOnError,
+		//but for folks who use ContinueOnError we can return the error for custom handling if desired
+		if err != nil {
+			if err == flag.ErrHelp && c.SilenceFlags {
+				//this assumes that one of the New*(name, true) funcs was used so we can give folks a free halp command
+				fmt.Fprint(c.Out, c.Usage(c))
+				return nil
+			}
+			return err
+		}
 	}
 
 	if c.Check != nil {

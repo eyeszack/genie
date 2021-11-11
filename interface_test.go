@@ -22,7 +22,7 @@ func Test_NewInterface(t *testing.T) {
 	t.Run("validate new", func(t *testing.T) {
 		wantName := "tester"
 		wantVersion := "0.0.0"
-		got := NewInterface(wantName, wantVersion)
+		got := NewInterface(wantName, wantVersion, false)
 		if got == nil {
 			t.Fatal("want interface, got nil")
 		}
@@ -58,6 +58,106 @@ func Test_NewInterface(t *testing.T) {
 		}
 		if got.RootCommand.Usage == nil {
 			t.Error("want DefaultCommandUsageFunc, got nil")
+		}
+	})
+}
+
+func TestInterface_SetWriters(t *testing.T) {
+	t.Run("validate new", func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		got := NewInterface("tester", "0.0.0", false)
+		got.RootCommand.SubCommands = []*Command{
+			NewCommand("heyo", false),
+		}
+
+		if got.Out != os.Stdout {
+			t.Errorf("want %v, got %v", os.Stdout, got.Out)
+		}
+		if got.Err != os.Stderr {
+			t.Errorf("want %v, got %v", os.Stderr, got.Err)
+		}
+
+		if got.RootCommand.Out != os.Stdout {
+			t.Errorf("want %v, got %v", os.Stdout, got.RootCommand.Out)
+		}
+		if got.RootCommand.Err != os.Stderr {
+			t.Errorf("want %v, got %v", os.Stderr, got.RootCommand.Err)
+		}
+
+		if got.RootCommand.Flags.Output() != os.Stderr {
+			t.Errorf("want %v, got %v", os.Stderr, got.RootCommand.Flags.Output())
+		}
+
+		if got.RootCommand.SubCommands[0].Out != os.Stdout {
+			t.Errorf("want %v, got %v", os.Stdout, got.RootCommand.SubCommands[0].Out)
+		}
+		if got.RootCommand.SubCommands[0].Err != os.Stderr {
+			t.Errorf("want %v, got %v", os.Stderr, got.RootCommand.SubCommands[0].Err)
+		}
+
+		if got.RootCommand.SubCommands[0].Flags.Output() != os.Stderr {
+			t.Errorf("want %v, got %v", os.Stderr, got.RootCommand.SubCommands[0].Flags.Output())
+		}
+
+		got.SetWriters(b, b)
+
+		if got.Out != b {
+			t.Errorf("want %v, got %v", b, got.Out)
+		}
+		if got.Err != b {
+			t.Errorf("want %v, got %v", b, got.Err)
+		}
+
+		if got.RootCommand.Out != b {
+			t.Errorf("want %v, got %v", b, got.RootCommand.Out)
+		}
+		if got.RootCommand.Err != b {
+			t.Errorf("want %v, got %v", b, got.RootCommand.Err)
+		}
+
+		if got.RootCommand.Flags.Output() != b {
+			t.Errorf("want %v, got %v", b, got.RootCommand.Flags.Output())
+		}
+
+		if got.RootCommand.SubCommands[0].Out != b {
+			t.Errorf("want %v, got %v", b, got.RootCommand.SubCommands[0].Out)
+		}
+		if got.RootCommand.SubCommands[0].Err != b {
+			t.Errorf("want %v, got %v", b, got.RootCommand.SubCommands[0].Err)
+		}
+
+		if got.RootCommand.SubCommands[0].Flags.Output() != b {
+			t.Errorf("want %v, got %v", b, got.RootCommand.SubCommands[0].Flags.Output())
+		}
+
+		got.SetWriters(nil, nil)
+		if got.Out != b {
+			t.Errorf("want %v, got %v", b, got.Out)
+		}
+		if got.Err != b {
+			t.Errorf("want %v, got %v", b, got.Err)
+		}
+
+		if got.RootCommand.Out != b {
+			t.Errorf("want %v, got %v", b, got.RootCommand.Out)
+		}
+		if got.RootCommand.Err != b {
+			t.Errorf("want %v, got %v", b, got.RootCommand.Err)
+		}
+
+		if got.RootCommand.Flags.Output() != b {
+			t.Errorf("want %v, got %v", b, got.RootCommand.Flags.Output())
+		}
+
+		if got.RootCommand.SubCommands[0].Out != b {
+			t.Errorf("want %v, got %v", b, got.RootCommand.SubCommands[0].Out)
+		}
+		if got.RootCommand.SubCommands[0].Err != b {
+			t.Errorf("want %v, got %v", b, got.RootCommand.SubCommands[0].Err)
+		}
+
+		if got.RootCommand.SubCommands[0].Flags.Output() != b {
+			t.Errorf("want %v, got %v", b, got.RootCommand.SubCommands[0].Flags.Output())
 		}
 	})
 }
