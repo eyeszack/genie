@@ -86,7 +86,7 @@ func (c *Interface) Exec(args []string) error {
 
 	//it's ok to not have flags, but if we do we assume a little structure
 	if hasFlags {
-		//flags if provided must immediately follow interface/command/subcommand
+		//for now we only allow max depth of 3 (e.g. interface command command -flag value)
 		if flagStart > 3 {
 			return ErrCommandDepthInvalid
 		}
@@ -96,34 +96,12 @@ func (c *Interface) Exec(args []string) error {
 			//calling interface
 			return c.RootCommand.run(args[flagStart:])
 		default:
-			command, found := c.searchPathForCommand(args[1:flagStart])
+			command, found, _ := c.searchPathForCommand(args[1:flagStart], false)
 			if !found {
 				return ErrCommandNotFound
 			}
 
 			return command.run(args[flagStart:])
-			/*case 2:
-				//calling a command (technically a subcommand on root)
-				command, found := c.RootCommand.findSubCommand(args[1])
-				if !found {
-					return ErrCommandNotFound
-				}
-
-				return command.run(args[flagStart:])
-			case 3:
-				//calling a subcommand so first find command
-				command, found := c.RootCommand.findSubCommand(args[1])
-				if !found {
-					return ErrCommandNotFound
-				}
-
-				//then find the subcommand
-				subcommand, found := command.findSubCommand(args[2])
-				if !found {
-					return ErrCommandNotFound
-				}
-
-				return subcommand.run(args[flagStart:])*/
 		}
 	}
 
@@ -132,18 +110,9 @@ func (c *Interface) Exec(args []string) error {
 	//----------------------------------------------------------------------------
 
 	//we may have a command provided
-	command, found := c.RootCommand.findSubCommand(args[1])
+	command, found, position := c.searchPathForCommand(args[1:], true)
 	if found {
-		//let's check for a subcommand
-		if len(args) > 2 {
-			subcommand, found := command.findSubCommand(args[2])
-			if found {
-				return subcommand.run(args[3:])
-			}
-		}
-
-		//no subcommand found or requested, so run the command we found
-		return command.run(args[2:])
+		return command.run(args[position+2:])
 	}
 
 	//no command or subcommand found so run root
@@ -160,22 +129,34 @@ func (c *Interface) hasFlags(args []string) (int, bool) {
 	return -1, false
 }
 
-func (c *Interface) searchPathForCommand(path []string) (*Command, bool) { //this is path excluding the interface name
-	var lastFound *Command
-	found := false
+func (c *Interface) searchPathForCommand(path []string, partialAllowed bool) (*Command, bool, int) { //this is path excluding the interface name
+	var lastFoundCommand *Command
+	lastFoundResult := false
+	lastFoundAt := -1
 	for i, pathPart := range path {
 		if i == 0 {
-			lastFound, found = c.RootCommand.findSubCommand(pathPart)
+			temp, found := c.RootCommand.findSubCommand(pathPart)
+			//if very first element results in not found it makes no sense to continue at all
 			if !found {
-				return nil, false
+				return nil, false, -1
 			}
+			lastFoundCommand = temp
+			lastFoundResult = found
+			lastFoundAt = i
 		} else {
-			lastFound, found = lastFound.findSubCommand(pathPart)
+			temp, found := lastFoundCommand.findSubCommand(pathPart)
 			if !found {
-				return nil, false
+				//now that we've at least found something, we check if a partial fine was requested, if so return last found results
+				if partialAllowed {
+					break
+				}
+				return nil, false, -1
 			}
+			lastFoundCommand = temp
+			lastFoundResult = found
+			lastFoundAt = i
 		}
 	}
 
-	return lastFound, found
+	return lastFoundCommand, lastFoundResult, lastFoundAt
 }

@@ -2,6 +2,7 @@ package geenee
 
 import (
 	"bytes"
+	"flag"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -389,11 +390,22 @@ func TestInterface_Exec(t *testing.T) {
 						},
 						SubCommands: []*Command{
 							{
-								Name: "subcommand",
-								Out:  b,
-								Err:  b,
+								Name:  "subcommand",
+								Out:   b,
+								Err:   b,
+								Flags: flag.NewFlagSet("subcommand", flag.ExitOnError),
 								Run: func(command *Command) error {
 									command.Out.Write([]byte("subcommand ran"))
+									if len(command.Flags.Args()) != 2 {
+										t.Errorf("want 2, got %d", len(command.Flags.Args()))
+									} else {
+										if command.Flags.Arg(0) != "immaarg" {
+											t.Errorf("want immaarg, got %s", command.Flags.Arg(0))
+										}
+										if command.Flags.Arg(1) != "metoo" {
+											t.Errorf("want metoo, got %s", command.Flags.Arg(1))
+										}
+									}
 									return nil
 								},
 							},
@@ -404,7 +416,7 @@ func TestInterface_Exec(t *testing.T) {
 			Out: b,
 			Err: b,
 		}
-		err := subject.Exec([]string{"test", "command", "subcommand"})
+		err := subject.Exec([]string{"test", "command", "subcommand", "immaarg", "metoo"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -419,6 +431,24 @@ func TestInterface_Exec(t *testing.T) {
 
 	t.Run("validate subcommand runs - flags", func(t *testing.T) {
 		b := bytes.NewBufferString("")
+		wantValue := ""
+		testCommand := &Command{
+			Name:  "subcommand",
+			Out:   b,
+			Err:   b,
+			Flags: flag.NewFlagSet("subcommand", flag.ExitOnError),
+			Run: func(command *Command) error {
+				command.Out.Write([]byte("subcommand ran"))
+				if !command.FlagWasProvided("flag") {
+					t.Error("want true, got false")
+				}
+				if wantValue != "value" {
+					t.Errorf("want value, got %s", wantValue)
+				}
+				return nil
+			},
+		}
+		testCommand.Flags.StringVar(&wantValue, "flag", "", "test flag")
 		want := "subcommand ran"
 		subject := &Interface{
 			Name: "test",
@@ -440,15 +470,7 @@ func TestInterface_Exec(t *testing.T) {
 							return nil
 						},
 						SubCommands: []*Command{
-							{
-								Name: "subcommand",
-								Out:  b,
-								Err:  b,
-								Run: func(command *Command) error {
-									command.Out.Write([]byte("subcommand ran"))
-									return nil
-								},
-							},
+							testCommand,
 						},
 					},
 				},
@@ -539,6 +561,25 @@ func TestInterface_Exec_error(t *testing.T) {
 			},
 		}
 		got := subject.Exec([]string{"test", "nope"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate interface returns error if invalid command called and found command not runnable - no flag", func(t *testing.T) {
+		want := ErrCommandNotRunnable
+		subject := &Interface{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+					},
+				},
+			},
+		}
+		got := subject.Exec([]string{"test", "command", "nope"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
@@ -667,6 +708,7 @@ func TestInterface_Exec_error(t *testing.T) {
 func TestInterface_searchPathForCommand(t *testing.T) {
 	t.Run("validate command is found", func(t *testing.T) {
 		want := &Command{Name: "command2"}
+		wantPos := 0
 		subject := &Interface{
 			Name: "test",
 			RootCommand: &Command{
@@ -684,17 +726,21 @@ func TestInterface_searchPathForCommand(t *testing.T) {
 				},
 			},
 		}
-		got, found := subject.searchPathForCommand([]string{"command2"})
+		got, found, position := subject.searchPathForCommand([]string{"command2"}, false)
 		if !found {
 			t.Errorf("want true, got %t", found)
 		}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("want %v, got %v", want, got)
 		}
+		if position != wantPos {
+			t.Errorf("want %d, got %d", wantPos, position)
+		}
 	})
 
 	t.Run("validate command is found - deep", func(t *testing.T) {
 		want := &Command{Name: "dang", Description: "It's me you're looking for."}
+		wantPos := 3
 		subject := &Interface{
 			Name: "test",
 			RootCommand: &Command{
@@ -733,17 +779,21 @@ func TestInterface_searchPathForCommand(t *testing.T) {
 				},
 			},
 		}
-		got, found := subject.searchPathForCommand([]string{"command2", "subcommand2", "subsubcommand3", "dang"})
+		got, found, position := subject.searchPathForCommand([]string{"command2", "subcommand2", "subsubcommand3", "dang"}, false)
 		if !found {
 			t.Errorf("want true, got %t", found)
 		}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("want %v, got %v", want, got)
 		}
+		if position != wantPos {
+			t.Errorf("want %d, got %d", wantPos, position)
+		}
 	})
 
 	t.Run("validate command is found with alias", func(t *testing.T) {
 		want := &Command{Name: "command2", Aliases: []string{"heyo"}}
+		wantPos := 0
 		subject := &Interface{
 			Name: "test",
 			RootCommand: &Command{
@@ -763,16 +813,65 @@ func TestInterface_searchPathForCommand(t *testing.T) {
 				},
 			},
 		}
-		got, found := subject.searchPathForCommand([]string{"heyo"})
+		got, found, position := subject.searchPathForCommand([]string{"heyo"}, false)
 		if !found {
 			t.Errorf("want true, got %t", found)
 		}
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("want %v, got %v", want, got)
 		}
+		if position != wantPos {
+			t.Errorf("want %d, got %d", wantPos, position)
+		}
+	})
+
+	t.Run("validate command is found - partial", func(t *testing.T) {
+		testRun := func(command *Command) error {
+			if len(command.Flags.Args()) != 1 {
+				t.Errorf("want 1, got %d", len(command.Flags.Args()))
+			} else {
+				if command.Flags.Arg(0) != "nope" {
+					t.Errorf("want nope, got %s", command.Flags.Arg(0))
+				}
+			}
+			return nil
+		}
+		want := &Command{Name: "subcommand2", Run: testRun, SubCommands: []*Command{{Name: "unused"}}}
+		wantPos := 1
+		subject := &Interface{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+					},
+					{
+						Name: "command2",
+						SubCommands: []*Command{
+							want,
+						},
+					},
+					{
+						Name: "command3",
+					},
+				},
+			},
+		}
+		got, found, position := subject.searchPathForCommand([]string{"command2", "subcommand2", "nope"}, true)
+		if !found {
+			t.Errorf("want true, got %t", found)
+		}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("want %v, got %v", want, got)
+		}
+		if position != wantPos {
+			t.Errorf("want %d, got %d", wantPos, position)
+		}
 	})
 
 	t.Run("validate command is not found", func(t *testing.T) {
+		wantPos := -1
 		subject := &Interface{
 			Name: "test",
 			RootCommand: &Command{
@@ -790,12 +889,15 @@ func TestInterface_searchPathForCommand(t *testing.T) {
 				},
 			},
 		}
-		got, found := subject.searchPathForCommand([]string{"nope"})
+		got, found, position := subject.searchPathForCommand([]string{"command", "nope"}, false)
 		if found {
 			t.Errorf("want false, got %t", found)
 		}
 		if got != nil {
 			t.Errorf("want nil, got %v", got)
+		}
+		if position != wantPos {
+			t.Errorf("want %d, got %d", wantPos, position)
 		}
 	})
 }
