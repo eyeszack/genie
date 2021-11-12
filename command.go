@@ -124,8 +124,14 @@ func (c *Command) findSubCommand(name string) (*Command, bool) {
 
 func (c *Command) run(args []string) error {
 	if c.Run == nil {
+		//just in case this is a call for help :)
+		if askedForHelp(args) {
+			return flag.ErrHelp
+		}
+
 		return ErrCommandNotRunnable
 	}
+
 	if c.Flags != nil {
 		err := c.Flags.Parse(args)
 		//technically we'd not get here if flagset error handling is set to flag.ExitOnError, or flag.PanicOnError,
@@ -148,4 +154,14 @@ func (c *Command) run(args []string) error {
 	}
 
 	return c.Run(c)
+}
+
+func askedForHelp(args []string) bool {
+	for _, flag := range args {
+		if flag == "-help" || flag == "--help" || flag == "-h" || flag == "--h" {
+			return true
+		}
+	}
+
+	return false
 }

@@ -332,6 +332,18 @@ func TestCommand_run(t *testing.T) {
 		}
 	})
 
+	t.Run("validate command returns help error if it is not runnable, but asked for help", func(t *testing.T) {
+		want := flag.ErrHelp
+		subject := &Command{
+			Name: "command",
+		}
+
+		got := subject.run([]string{"-flag", "-help"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
 	t.Run("validate command run returns flag errors when silence flags is true", func(t *testing.T) {
 		want := errors.New("flag provided but not defined: -flag")
 		subject := NewCommand("silenced", true)
