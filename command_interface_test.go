@@ -761,6 +761,100 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 	})
 }
 
+func TestCommandInterface_Execute(t *testing.T) {
+	t.Run("validate command runs - no flags", func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		want := "command ran"
+		wantCommand := &Command{
+			Name: "command",
+			Out:  b,
+			Err:  b,
+			Run: func(command *Command) error {
+				command.Out.Write([]byte("command ran"))
+				return nil
+			},
+		}
+		subject := &CommandInterface{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				Out:  b,
+				Err:  b,
+				Run: func(command *Command) error {
+					command.Out.Write([]byte("root command ran"))
+					return nil
+				},
+				SubCommands: []*Command{
+					wantCommand,
+				},
+			},
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
+		}
+		gotCommand, err := subject.Execute([]string{"test", "command"})
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+		if !reflect.DeepEqual(gotCommand, wantCommand) {
+			t.Errorf("want %v, got %v", wantCommand, gotCommand)
+		}
+	})
+
+	t.Run("validate command runs - flags", func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		want := "command ran"
+		wantCommand := &Command{
+			Name: "command",
+			Out:  b,
+			Err:  b,
+			Run: func(command *Command) error {
+				command.Out.Write([]byte("command ran"))
+				return nil
+			},
+		}
+		subject := &CommandInterface{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				Out:  b,
+				Err:  b,
+				Run: func(command *Command) error {
+					command.Out.Write([]byte("root command ran"))
+					return nil
+				},
+				SubCommands: []*Command{
+					wantCommand,
+				},
+			},
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
+		}
+		gotCommand, err := subject.Execute([]string{"test", "command", "-flag", "value"})
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+		if !reflect.DeepEqual(gotCommand, wantCommand) {
+			t.Errorf("want %v, got %v", wantCommand, gotCommand)
+		}
+	})
+}
+
 func TestCommandInterface_searchPathForCommand(t *testing.T) {
 	t.Run("validate command is found", func(t *testing.T) {
 		want := &Command{Name: "command2"}
