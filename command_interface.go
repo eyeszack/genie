@@ -20,8 +20,8 @@ var (
 	ErrCommandNotRunnable   = GeeneeError("command not runnable")
 )
 
-//Interface is a very simple representation of a Command Line Interface or any Interface with commands.
-type Interface struct {
+//CommandInterface is a very simple representation of a Command Line Interface or any interface with commands.
+type CommandInterface struct {
 	Name            string
 	RootCommand     *Command
 	Out             io.Writer
@@ -31,9 +31,9 @@ type Interface struct {
 	MaxCommandDepth int
 }
 
-//NewInterface returns an Interface with sensible defaults.
-func NewInterface(name, version string, silenceFlags bool) *Interface {
-	return &Interface{
+//NewInterface returns an CommandInterface with sensible defaults.
+func NewInterface(name, version string, silenceFlags bool) *CommandInterface {
+	return &CommandInterface{
 		Name:            name,
 		RootCommand:     NewCommand(name, silenceFlags),
 		Out:             os.Stdout,
@@ -46,7 +46,7 @@ func NewInterface(name, version string, silenceFlags bool) *Interface {
 
 //SetWriters will set the out and err writers on the interface and all commands.
 //If either writer is nil this will not change current writer.
-func (c *Interface) SetWriters(o, e io.Writer) {
+func (c *CommandInterface) SetWriters(o, e io.Writer) {
 	if o != nil {
 		c.Out = o
 		c.RootCommand.SetOut(o)
@@ -58,8 +58,8 @@ func (c *Interface) SetWriters(o, e io.Writer) {
 	}
 }
 
-//Exec executes the Interface with the provided arguments.
-func (c *Interface) Exec(args []string) error {
+//Exec executes the CommandInterface with the provided arguments.
+func (c *CommandInterface) Exec(args []string) error {
 	//if we have no root command there is nothing we can do
 	if c.RootCommand == nil {
 		return ErrNoOp
@@ -123,7 +123,7 @@ func (c *Interface) Exec(args []string) error {
 	return c.RootCommand.run(args[1:])
 }
 
-func (c *Interface) hasFlags(args []string) (int, bool) {
+func (c *CommandInterface) hasFlags(args []string) (int, bool) {
 	for i, flag := range args {
 		if strings.HasPrefix(flag, "-") {
 			return i, true
@@ -133,7 +133,10 @@ func (c *Interface) hasFlags(args []string) (int, bool) {
 	return -1, false
 }
 
-func (c *Interface) searchPathForCommand(path []string, partialAllowed bool) (*Command, bool, int) { //this is path excluding the interface name
+//path should not contain the interface name
+//if partialAllowed == false, path should only contain commands, no flags/args
+//if partialAllowed == true, path can contain trailing flags/args as it will return last command found if any
+func (c *CommandInterface) searchPathForCommand(path []string, partialAllowed bool) (*Command, bool, int) {
 	var lastFoundCommand *Command
 	lastFoundResult := false
 	lastFoundAt := -1

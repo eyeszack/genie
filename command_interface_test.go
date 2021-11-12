@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestInterfaceError_Error(t *testing.T) {
+func TestGeeneeError_Error(t *testing.T) {
 	t.Run("validate error string", func(t *testing.T) {
 		want := "heyo error"
 		got := GeeneeError("heyo error")
@@ -63,7 +63,7 @@ func Test_NewInterface(t *testing.T) {
 	})
 }
 
-func TestInterface_SetWriters(t *testing.T) {
+func TestCommandInterface_SetWriters(t *testing.T) {
 	t.Run("validate new", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		got := NewInterface("tester", "0.0.0", false)
@@ -163,11 +163,11 @@ func TestInterface_SetWriters(t *testing.T) {
 	})
 }
 
-func TestInterface_Exec(t *testing.T) {
+func TestCommandInterface_Exec(t *testing.T) {
 	t.Run("validate interface root command runs - no flags/args", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := "root command ran"
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -198,7 +198,7 @@ func TestInterface_Exec(t *testing.T) {
 	t.Run("validate interface root command runs - no flags with args", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := "root command ran"
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -229,7 +229,7 @@ func TestInterface_Exec(t *testing.T) {
 	t.Run("validate interface root command runs - no flags", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := "root command ran"
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -260,7 +260,7 @@ func TestInterface_Exec(t *testing.T) {
 	t.Run("validate interface root command runs - flags", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := "root command ran"
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -291,7 +291,7 @@ func TestInterface_Exec(t *testing.T) {
 	t.Run("validate command runs - no flags", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := "command ran"
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -333,7 +333,7 @@ func TestInterface_Exec(t *testing.T) {
 	t.Run("validate command runs - flags", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := "command ran"
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -375,7 +375,7 @@ func TestInterface_Exec(t *testing.T) {
 	t.Run("validate subcommand runs - no flags", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := "subcommand ran"
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -457,7 +457,7 @@ func TestInterface_Exec(t *testing.T) {
 		}
 		testCommand.Flags.StringVar(&wantValue, "flag", "", "test flag")
 		want := "subcommand ran"
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -500,10 +500,10 @@ func TestInterface_Exec(t *testing.T) {
 	})
 }
 
-func TestInterface_Exec_error(t *testing.T) {
+func TestCommandInterface_Exec_error(t *testing.T) {
 	t.Run("validate interface returns error if no args provided", func(t *testing.T) {
 		want := ErrNoArgs
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -518,7 +518,7 @@ func TestInterface_Exec_error(t *testing.T) {
 
 	t.Run("validate interface returns error if noop state", func(t *testing.T) {
 		want := ErrNoOp
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name:            "test",
 			MaxCommandDepth: 3,
 		}
@@ -530,7 +530,7 @@ func TestInterface_Exec_error(t *testing.T) {
 
 	t.Run("validate interface returns error if different interface called", func(t *testing.T) {
 		want := ErrInvalidInterfaceName
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -545,7 +545,7 @@ func TestInterface_Exec_error(t *testing.T) {
 
 	t.Run("validate interface returns error if invalid command called (noop) - no flag", func(t *testing.T) {
 		want := ErrNoOp
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name:            "test",
 			MaxCommandDepth: 3,
 		}
@@ -557,7 +557,7 @@ func TestInterface_Exec_error(t *testing.T) {
 
 	t.Run("validate interface returns error if invalid command called and root not runnable - no flag", func(t *testing.T) {
 		want := ErrCommandNotRunnable
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -581,7 +581,7 @@ func TestInterface_Exec_error(t *testing.T) {
 
 	t.Run("validate interface returns error if invalid command called and found command not runnable - no flag", func(t *testing.T) {
 		want := ErrCommandNotRunnable
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -601,7 +601,7 @@ func TestInterface_Exec_error(t *testing.T) {
 
 	t.Run("validate interface returns error if invalid command called", func(t *testing.T) {
 		want := ErrCommandNotFound
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -625,7 +625,7 @@ func TestInterface_Exec_error(t *testing.T) {
 
 	t.Run("validate interface returns error if invalid subcommand called", func(t *testing.T) {
 		want := ErrCommandNotFound
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -658,7 +658,7 @@ func TestInterface_Exec_error(t *testing.T) {
 
 	t.Run("validate interface returns error if valid subcommand called on an invalid command", func(t *testing.T) {
 		want := ErrCommandNotFound
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -691,7 +691,7 @@ func TestInterface_Exec_error(t *testing.T) {
 
 	t.Run("validate interface returns error if command depth invalid - flags", func(t *testing.T) {
 		want := ErrCommandDepthInvalid
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -724,7 +724,7 @@ func TestInterface_Exec_error(t *testing.T) {
 
 	t.Run("validate interface returns error if command depth invalid - no flags", func(t *testing.T) {
 		want := ErrCommandDepthInvalid
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -761,11 +761,11 @@ func TestInterface_Exec_error(t *testing.T) {
 	})
 }
 
-func TestInterface_searchPathForCommand(t *testing.T) {
+func TestCommandInterface_searchPathForCommand(t *testing.T) {
 	t.Run("validate command is found", func(t *testing.T) {
 		want := &Command{Name: "command2"}
 		wantPos := 0
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -797,7 +797,7 @@ func TestInterface_searchPathForCommand(t *testing.T) {
 	t.Run("validate command is found - deep", func(t *testing.T) {
 		want := &Command{Name: "dang", Description: "It's me you're looking for."}
 		wantPos := 3
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -850,7 +850,7 @@ func TestInterface_searchPathForCommand(t *testing.T) {
 	t.Run("validate command is found with alias", func(t *testing.T) {
 		want := &Command{Name: "command2", Aliases: []string{"heyo"}}
 		wantPos := 0
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -894,7 +894,7 @@ func TestInterface_searchPathForCommand(t *testing.T) {
 		}
 		want := &Command{Name: "subcommand2", Run: testRun, SubCommands: []*Command{{Name: "unused"}}}
 		wantPos := 1
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -928,7 +928,7 @@ func TestInterface_searchPathForCommand(t *testing.T) {
 
 	t.Run("validate command is not found", func(t *testing.T) {
 		wantPos := -1
-		subject := &Interface{
+		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
 				Name: "test",
@@ -958,11 +958,11 @@ func TestInterface_searchPathForCommand(t *testing.T) {
 	})
 }
 
-func TestInterface_hasFlags(t *testing.T) {
+func TestCommandInterface_hasFlags(t *testing.T) {
 	t.Run("validate flag is found in correct position", func(t *testing.T) {
 		want := 3
 		args := []string{"interface", "command", "subcommand", "-flag", "value", "heyo"}
-		subject := &Interface{}
+		subject := &CommandInterface{}
 		got, hasFlag := subject.hasFlags(args)
 		if !hasFlag {
 			t.Errorf("want true, got %t", hasFlag)
@@ -975,7 +975,7 @@ func TestInterface_hasFlags(t *testing.T) {
 	t.Run("validate flag is found in correct position (--)", func(t *testing.T) {
 		want := 2
 		args := []string{"interface", "command", "--flag", "value", "heyo"}
-		subject := &Interface{}
+		subject := &CommandInterface{}
 		got, hasFlag := subject.hasFlags(args)
 		if !hasFlag {
 			t.Errorf("want true, got %t", hasFlag)
@@ -988,7 +988,7 @@ func TestInterface_hasFlags(t *testing.T) {
 	t.Run("validate flag is not found", func(t *testing.T) {
 		want := -1
 		args := []string{"interface", "command", "subcommand", "notaflag", "value"}
-		subject := &Interface{}
+		subject := &CommandInterface{}
 		got, hasFlag := subject.hasFlags(args)
 		if hasFlag {
 			t.Errorf("want false, got %t", hasFlag)
