@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"text/tabwriter"
 )
 
 var DefaultCommandUsageFunc = func(command *Command) string {
@@ -58,6 +59,7 @@ func mergeFlagsUsage(flags *flag.FlagSet) string {
 	usages := make(map[string][]string)
 
 	var builder strings.Builder
+	tabWriter := tabwriter.NewWriter(&builder, 0, 0, 4, ' ', tabwriter.DiscardEmptyColumns)
 	if flags != nil {
 		flags.VisitAll(func(f *flag.Flag) {
 			defaultVal := ""
@@ -94,7 +96,7 @@ func mergeFlagsUsage(flags *flag.FlagSet) string {
 				existingFlags = append([]string{dashedFlag}, existingFlags...)
 				usages[usage] = existingFlags
 			} else {
-				temp := []string{dashedFlag, typeOf}
+				temp := []string{dashedFlag, "\t" + typeOf}
 				usages[usage] = temp
 			}
 		})
@@ -103,7 +105,7 @@ func mergeFlagsUsage(flags *flag.FlagSet) string {
 	//now we sort the flag usage to match flag package
 	sorted := make([]string, len(usages))
 	for k, v := range usages {
-		sorted = append(sorted, fmt.Sprintf("  %s\n\t\t%s\n", strings.TrimSuffix(strings.Join(v, " "), " "), k))
+		sorted = append(sorted, fmt.Sprintf("%s\t%s\n", strings.TrimSuffix(strings.Join(v, " "), " "), k))
 	}
 
 	sort.Slice(sorted, func(i, j int) bool {
@@ -115,15 +117,17 @@ func mergeFlagsUsage(flags *flag.FlagSet) string {
 	}
 
 	for _, s := range sorted {
-		builder.WriteString(s)
+		tabWriter.Write([]byte(s))
 	}
 
+	tabWriter.Flush()
 	return builder.String()
 }
 
 func flagsUsage(flags *flag.FlagSet) string {
 	flagCount := 0
 	var builder strings.Builder
+	tabWriter := tabwriter.NewWriter(&builder, 0, 0, 4, ' ', tabwriter.DiscardEmptyColumns)
 	if flags != nil {
 		builder.WriteString("\nFLAGS:\n")
 		flags.VisitAll(func(f *flag.Flag) {
@@ -153,8 +157,7 @@ func flagsUsage(flags *flag.FlagSet) string {
 			if len(f.Name) == 1 {
 				dashes = "-"
 			}
-			builder.WriteString(fmt.Sprintf("  %s%s%s\n", dashes, f.Name, typeOf))
-			builder.WriteString(fmt.Sprintf("\t\t%s%s\n", f.Usage, defaultVal))
+			tabWriter.Write([]byte(fmt.Sprintf("%s%s\t%s\t%s%s\n", dashes, f.Name, typeOf, f.Usage, defaultVal)))
 		})
 	}
 
@@ -162,5 +165,6 @@ func flagsUsage(flags *flag.FlagSet) string {
 		return ""
 	}
 
+	tabWriter.Flush()
 	return builder.String()
 }

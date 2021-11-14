@@ -19,18 +19,12 @@ HEADING:
 This can be used to provide all kinds of extra usage info.
 
 FLAGS:
-  --count int
-		this is an int count (default 100)
-  -n uint
-		this is a uint flag (default 0)
-  --price float
-		this is a float flag (default 1.5)
-  --testing string
-		this is a testing flag
-  --time duration
-		this is a duration flag (default 1h0m0s)
-  -v
-		this is another testing flag (default false)
+--count       int         this is an int count (default 100)
+-n            uint        this is a uint flag (default 0)
+--price       float       this is a float flag (default 1.5)
+--testing     string      this is a testing flag
+--time        duration    this is a duration flag (default 1h0m0s)
+-v                        this is another testing flag (default false)
 
 COMMANDS:
 subcommand	The test command subcommand.
@@ -83,18 +77,12 @@ HEADING:
 This can be used to provide all kinds of extra usage info.
 
 FLAGS:
-  --count -c int
-		this is an int count (default 100)
-  --number -n uint
-		this is a uint flag (default 0)
-  --price -p float
-		this is a float flag (default 1.5)
-  --testing -t string
-		this is a testing flag
-  --time -d duration
-		this is a duration flag (default 1h0m0s)
-  --verbose -v
-		this is another testing flag (default false)
+--count -c       int         this is an int count (default 100)
+--number -n      uint        this is a uint flag (default 0)
+--price -p       float       this is a float flag (default 1.5)
+--testing -t     string      this is a testing flag
+--time -d        duration    this is a duration flag (default 1h0m0s)
+--verbose -v                 this is another testing flag (default false)
 
 COMMANDS:
 subcommand	The test command subcommand.
@@ -164,8 +152,7 @@ USAGE:
 command
 
 FLAGS:
-  --testing string
-		this is a testing flag
+--testing     string    this is a testing flag
 
 Use "--help" with any command for more information.
 `
