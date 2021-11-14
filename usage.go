@@ -28,9 +28,9 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 
 	if command.Flags != nil {
 		if command.MergeFlagUsage {
-			builder.WriteString(mergeFlagsUsage(command.Flags))
+			builder.WriteString(mergeFlagsUsage(command.Flags, command.root))
 		} else {
-			builder.WriteString(flagsUsage(command.Flags))
+			builder.WriteString(flagsUsage(command.Flags, command.root))
 		}
 	}
 
@@ -55,7 +55,7 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 	return builder.String()
 }
 
-func mergeFlagsUsage(flags *flag.FlagSet) string {
+func mergeFlagsUsage(flags *flag.FlagSet, isRoot bool) string {
 	usages := make(map[string][]string)
 
 	var builder strings.Builder
@@ -102,6 +102,11 @@ func mergeFlagsUsage(flags *flag.FlagSet) string {
 		})
 	}
 
+	if isRoot {
+		//we add the version flag to root since we support it automatically
+		usages["display version information"] = []string{"--version", "\t"}
+	}
+
 	//now we sort the flag usage to match flag package
 	sorted := make([]string, len(usages))
 	for k, v := range usages {
@@ -124,9 +129,10 @@ func mergeFlagsUsage(flags *flag.FlagSet) string {
 	return builder.String()
 }
 
-func flagsUsage(flags *flag.FlagSet) string {
+func flagsUsage(flags *flag.FlagSet, isRoot bool) string {
 	flagCount := 0
 	var builder strings.Builder
+	var usages []string
 	tabWriter := tabwriter.NewWriter(&builder, 0, 0, 4, ' ', tabwriter.DiscardEmptyColumns)
 	if flags != nil {
 		builder.WriteString("\nFLAGS:\n")
@@ -157,12 +163,26 @@ func flagsUsage(flags *flag.FlagSet) string {
 			if len(f.Name) == 1 {
 				dashes = "-"
 			}
-			tabWriter.Write([]byte(fmt.Sprintf("%s%s\t%s\t%s%s\n", dashes, f.Name, typeOf, f.Usage, defaultVal)))
+			usages = append(usages, fmt.Sprintf("%s%s\t%s\t%s%s\n", dashes, f.Name, typeOf, f.Usage, defaultVal))
 		})
+	}
+
+	if isRoot {
+		//we add the version flag to root since we support it automatically
+		flagCount++
+		usages = append(usages, fmt.Sprintf("%s\t%s\t%s\n", "--version", "", "display version information"))
 	}
 
 	if flagCount == 0 {
 		return ""
+	}
+
+	sort.Slice(usages, func(i, j int) bool {
+		return usages[i] < usages[j]
+	})
+
+	for _, s := range usages {
+		tabWriter.Write([]byte(s))
 	}
 
 	tabWriter.Flush()

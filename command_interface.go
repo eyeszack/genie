@@ -1,6 +1,7 @@
 package geenee
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -72,17 +73,21 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) {
 		return nil, ErrNoOp
 	}
 
+	//set some metadata on the root command since we'll know which is root now
+	ci.RootCommand.root = true
+	ci.RootCommand.path = ci.RootCommand.Name
+
 	//no args will return an error, but some folks may not care
 	if len(args) <= 0 {
 		return nil, ErrNoArgs
 	}
 
-	//this could happen if the interface is misnamed, maybe in the future we can ignore
+	//this could happen if the interface is misnamed, or args passed incorrectly
 	if args[0] != ci.Name || strings.HasPrefix(args[0], "-") {
 		return nil, ErrInvalidInterfaceName
 	}
 
-	//just the interface was provided so run root command if available
+	//just the interface was provided so run root command
 	if len(args) == 1 {
 		return ci.RootCommand, ci.RootCommand.run([]string{})
 	}
@@ -101,6 +106,12 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) {
 
 		switch flagStart {
 		case 1:
+			if askedForVersion(args) {
+				if ci.Out != nil {
+					fmt.Fprintln(ci.Out, ci.Version)
+				}
+				return ci.RootCommand, nil
+			}
 			//calling interface
 			return ci.RootCommand, ci.RootCommand.run(args[flagStart:])
 		default:
@@ -109,6 +120,8 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) {
 				return nil, ErrCommandNotFound
 			}
 
+			command.root = false
+			command.path = strings.TrimSuffix(strings.Join(args[1:flagStart], " "), " ")
 			return command, command.run(args[flagStart:])
 		}
 	}
@@ -123,6 +136,8 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) {
 		if position+2 > ci.MaxCommandDepth {
 			return nil, ErrCommandDepthInvalid
 		}
+		command.root = false
+		command.path = strings.TrimSuffix(strings.Join(args[1:position+2], " "), " ")
 		return command, command.run(args[position+2:])
 	}
 
@@ -173,4 +188,14 @@ func (ci *CommandInterface) searchPathForCommand(path []string, partialAllowed b
 	}
 
 	return lastFoundCommand, lastFoundResult, lastFoundAt
+}
+
+func askedForVersion(args []string) bool {
+	for _, flag := range args {
+		if flag == "-version" || flag == "--version" {
+			return true
+		}
+	}
+
+	return false
 }

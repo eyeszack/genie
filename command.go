@@ -43,6 +43,8 @@ type Command struct {
 	MergeFlagUsage bool
 	SilenceFlags   bool
 	Secret         bool
+	root           bool   //this is set at execution time
+	path           string //this is set at execution time
 }
 
 //NewCommand returns a Command with sensible defaults.

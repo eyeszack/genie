@@ -164,6 +164,38 @@ func TestCommandInterface_SetWriters(t *testing.T) {
 }
 
 func TestCommandInterface_Exec(t *testing.T) {
+	t.Run("validate interface returns version if version flag present, and doesn't run root command", func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		want := "test 0.0.0\n"
+		subject := &CommandInterface{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				Out:  b,
+				Err:  b,
+				Run: func(command *Command) error {
+					command.Out.Write([]byte("root command ran"))
+					return nil
+				},
+			},
+			Out:             b,
+			Err:             b,
+			Version:         "test 0.0.0",
+			MaxCommandDepth: 3,
+		}
+		err := subject.Exec([]string{"test", "-version"})
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
+
 	t.Run("validate interface root command runs - no flags/args", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := "root command ran"
