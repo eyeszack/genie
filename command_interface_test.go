@@ -407,6 +407,7 @@ func TestCommandInterface_Exec(t *testing.T) {
 	t.Run("validate subcommand runs - no flags", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := "subcommand ran"
+		wantPath := "test command subcommand"
 		subject := &CommandInterface{
 			Name: "test",
 			RootCommand: &Command{
@@ -443,6 +444,12 @@ func TestCommandInterface_Exec(t *testing.T) {
 										if command.Flags.Arg(1) != "metoo" {
 											t.Errorf("want metoo, got %s", command.Flags.Arg(1))
 										}
+									}
+									if command.root {
+										t.Errorf("want: false, got %t", command.root)
+									}
+									if command.path != wantPath {
+										t.Errorf("want: %s, got %s", wantPath, command.path)
 									}
 									return nil
 								},

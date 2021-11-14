@@ -121,7 +121,7 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) {
 			}
 
 			command.root = false
-			command.path = strings.TrimSuffix(strings.Join(args[1:flagStart], " "), " ")
+			command.path = strings.TrimSuffix(strings.Join(args[:flagStart], " "), " ")
 			return command, command.run(args[flagStart:])
 		}
 	}
@@ -137,7 +137,7 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) {
 			return nil, ErrCommandDepthInvalid
 		}
 		command.root = false
-		command.path = strings.TrimSuffix(strings.Join(args[1:position+2], " "), " ")
+		command.path = strings.TrimSuffix(strings.Join(args[:position+2], " "), " ")
 		return command, command.run(args[position+2:])
 	}
 
