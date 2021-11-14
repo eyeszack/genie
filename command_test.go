@@ -362,7 +362,8 @@ func TestCommand_run(t *testing.T) {
 USAGE:
 silenced
 
-Use "--help" with any command for more information.
+FLAGS:
+--help        display help for command
 `
 		subject := NewCommand("silenced", true)
 		subject.Out = b

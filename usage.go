@@ -26,30 +26,31 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 		builder.WriteString(fmt.Sprintf("\n%s\n", command.ExtraInfo))
 	}
 
-	if command.Flags != nil {
-		if command.MergeFlagUsage {
-			builder.WriteString(mergeFlagsUsage(command.Flags, command.root))
-		} else {
-			builder.WriteString(flagsUsage(command.Flags, command.root))
-		}
+	if command.MergeFlagUsage {
+		builder.WriteString(mergeFlagsUsage(command.Flags, command.root))
+	} else {
+		builder.WriteString(flagsUsage(command.Flags, command.root))
 	}
 
+	wroteCommandHeader := false
 	if len(command.SubCommands) > 0 {
-		wroteHeader := false
 		for _, subcommand := range command.SubCommands {
 			if !subcommand.Secret {
-				if !wroteHeader {
+				if !wroteCommandHeader {
 					builder.WriteString("\nCOMMANDS:\n")
-					wroteHeader = true
+					wroteCommandHeader = true
 				}
 				builder.WriteString(fmt.Sprintf("%s\t%s\n", subcommand.Name, subcommand.Description))
 			}
 		}
 	}
+	if wroteCommandHeader {
+		helpMsg := "\nUse \"--help\" with any command for more information.\n"
+		if command.path != "" {
+			helpMsg = fmt.Sprintf("\nUse \"%s <command> --help\" for more information.\n", command.path)
+		}
 
-	//flagset automatically handles -help or -h so it's basically like having a help command for free
-	if command.Flags != nil {
-		builder.WriteString("\nUse \"--help\" with any command for more information.\n")
+		builder.WriteString(helpMsg)
 	}
 
 	return builder.String()
@@ -106,6 +107,7 @@ func mergeFlagsUsage(flags *flag.FlagSet, isRoot bool) string {
 		//we add the version flag to root since we support it automatically
 		usages["display version information"] = []string{"--version", "\t"}
 	}
+	usages["display help for command"] = []string{"--help", "\t"}
 
 	//now we sort the flag usage to match flag package
 	sorted := make([]string, len(usages))
@@ -134,8 +136,8 @@ func flagsUsage(flags *flag.FlagSet, isRoot bool) string {
 	var builder strings.Builder
 	var usages []string
 	tabWriter := tabwriter.NewWriter(&builder, 0, 0, 4, ' ', tabwriter.DiscardEmptyColumns)
+	builder.WriteString("\nFLAGS:\n") //all commands have at least --help
 	if flags != nil {
-		builder.WriteString("\nFLAGS:\n")
 		flags.VisitAll(func(f *flag.Flag) {
 			flagCount++
 			defaultVal := ""
@@ -173,9 +175,8 @@ func flagsUsage(flags *flag.FlagSet, isRoot bool) string {
 		usages = append(usages, fmt.Sprintf("%s\t%s\t%s\n", "--version", "", "display version information"))
 	}
 
-	if flagCount == 0 {
-		return ""
-	}
+	flagCount++
+	usages = append(usages, fmt.Sprintf("%s\t%s\t%s\n", "--help", "", "display help for command"))
 
 	sort.Slice(usages, func(i, j int) bool {
 		return usages[i] < usages[j]

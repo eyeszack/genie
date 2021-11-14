@@ -108,6 +108,15 @@ func (c *Command) FlagWasProvided(name string) bool {
 	return set
 }
 
+//ShowUsage runs the provided usage function, or the default if none provided.
+func (c *Command) ShowUsage() string {
+	if c.Usage != nil {
+		return c.Usage(c)
+	}
+
+	return DefaultCommandUsageFunc(c)
+}
+
 func (c *Command) findSubCommand(name string) (*Command, bool) {
 	for _, command := range c.SubCommands {
 		if name == command.Name {
@@ -125,12 +134,15 @@ func (c *Command) findSubCommand(name string) (*Command, bool) {
 }
 
 func (c *Command) run(args []string) error {
-	if c.Run == nil {
-		//just in case this is a call for help :)
-		if askedForHelp(args) {
-			return flag.ErrHelp
+	if askedForHelp(args) {
+		if c.Out != nil {
+			fmt.Fprint(c.Out, c.ShowUsage())
+			return nil
 		}
+		return flag.ErrHelp
+	}
 
+	if c.Run == nil {
 		return ErrCommandNotRunnable
 	}
 
@@ -139,11 +151,6 @@ func (c *Command) run(args []string) error {
 		//technically we'd not get here if flagset error handling is set to flag.ExitOnError, or flag.PanicOnError,
 		//but for folks who use ContinueOnError we can return the error for custom handling if desired
 		if err != nil {
-			if err == flag.ErrHelp && c.SilenceFlags {
-				//this assumes that one of the New*(name, true) funcs was used so we can give folks a free halp command
-				fmt.Fprint(c.Out, c.Usage(c))
-				return nil
-			}
 			return err
 		}
 	}
