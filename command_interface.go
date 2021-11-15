@@ -83,7 +83,7 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) {
 	}
 
 	//this could happen if the interface is misnamed, or args passed incorrectly
-	if args[0] != ci.Name || strings.HasPrefix(args[0], "-") {
+	if !strings.HasSuffix(args[0], ci.Name) || strings.HasPrefix(args[0], "-") { //checking suffix for accounts for using full path to binary, still may need to do more
 		return nil, ErrInvalidInterfaceName
 	}
 

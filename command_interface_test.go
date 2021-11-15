@@ -576,7 +576,7 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 			},
 			MaxCommandDepth: 3,
 		}
-		got := subject.Exec([]string{"nottest"})
+		got := subject.Exec([]string{"notvalid"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
