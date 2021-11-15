@@ -537,6 +537,69 @@ func TestCommandInterface_Exec(t *testing.T) {
 			t.Errorf("want: %s, got %s", want, string(got))
 		}
 	})
+
+	t.Run("validate subcommand runs - flags - full path to binary", func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		wantValue := ""
+		testCommand := &Command{
+			Name:  "subcommand",
+			Out:   b,
+			Err:   b,
+			Flags: flag.NewFlagSet("subcommand", flag.ExitOnError),
+			Run: func(command *Command) error {
+				command.Out.Write([]byte("subcommand ran"))
+				if !command.FlagWasProvided("flag") {
+					t.Error("want true, got false")
+				}
+				if wantValue != "value" {
+					t.Errorf("want value, got %s", wantValue)
+				}
+				return nil
+			},
+		}
+		testCommand.Flags.StringVar(&wantValue, "flag", "", "test flag")
+		want := "subcommand ran"
+		subject := &CommandInterface{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				Out:  b,
+				Err:  b,
+				Run: func(command *Command) error {
+					command.Out.Write([]byte("root command ran"))
+					return nil
+				},
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Out:  b,
+						Err:  b,
+						Run: func(command *Command) error {
+							command.Out.Write([]byte("command ran"))
+							return nil
+						},
+						SubCommands: []*Command{
+							testCommand,
+						},
+					},
+				},
+			},
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
+		}
+		err := subject.Exec([]string{"/home/usr/bin/test", "command", "subcommand", "-flag", "value"})
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
 }
 
 func TestCommandInterface_Exec_error(t *testing.T) {

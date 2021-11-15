@@ -82,9 +82,14 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) {
 		return nil, ErrNoArgs
 	}
 
-	//this could happen if the interface is misnamed, or args passed incorrectly
-	if !strings.HasSuffix(args[0], ci.Name) || strings.HasPrefix(args[0], "-") { //checking suffix for accounts for using full path to binary, still may need to do more
-		return nil, ErrInvalidInterfaceName
+	//this could happen if the interface is misnamed, or args passed incorrectly, or full path to binary used
+	if args[0] != ci.Name || strings.HasPrefix(args[0], "-") {
+		//if full path to binary passed let's just shorten it
+		if strings.HasSuffix(args[0], ci.Name) {
+			args[0] = ci.Name
+		} else {
+			return nil, ErrInvalidInterfaceName
+		}
 	}
 
 	//just the interface was provided so run root command
