@@ -28,7 +28,7 @@ FLAGS:
 -v                        this is another testing flag (default false)
 
 COMMANDS:
-subcommand	The test command subcommand.
+subcommand    The test command subcommand.
 
 Use "command <command> --help" for more information.
 `
@@ -89,7 +89,7 @@ FLAGS:
 --version                    display version information
 
 COMMANDS:
-subcommand	The test command subcommand.
+subcommand    The test command subcommand.
 
 Use "command <command> --help" for more information.
 `

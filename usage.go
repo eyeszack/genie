@@ -39,6 +39,7 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 		builder.WriteString(flagsUsage(command.Flags, command.root))
 	}
 
+	tabWriter := tabwriter.NewWriter(&builder, 0, 0, 4, ' ', tabwriter.DiscardEmptyColumns)
 	wroteCommandHeader := false
 	if len(command.SubCommands) > 0 {
 		for _, subcommand := range command.SubCommands {
@@ -47,10 +48,11 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 					builder.WriteString("\nCOMMANDS:\n")
 					wroteCommandHeader = true
 				}
-				builder.WriteString(fmt.Sprintf("%s\t%s\n", subcommand.Name, subcommand.Description))
+				tabWriter.Write([]byte(fmt.Sprintf("%s\t%s\n", subcommand.Name, subcommand.Description)))
 			}
 		}
 	}
+	tabWriter.Flush()
 	if wroteCommandHeader {
 		helpMsg := "\nUse \"--help\" with any command for more information.\n"
 		if command.path != "" {
