@@ -88,6 +88,56 @@ func Test_NewCommand(t *testing.T) {
 	})
 }
 
+func TestCommand_AnchorPaths(t *testing.T) {
+	t.Run("validate paths after anchoring a command", func(t *testing.T) {
+		want := "test command command2"
+		subject := &Command{
+			Name: "test",
+			SubCommands: []*Command{
+				{
+					Name: "command",
+					SubCommands: []*Command{
+						{
+							Name: "command2",
+						},
+					},
+				},
+			},
+		}
+
+		subject.AnchorPaths()
+		got := subject.SubCommands[0].SubCommands[0].path
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+}
+
+func TestCommand_adjustPath(t *testing.T) {
+	t.Run("validate paths after anchoring a command", func(t *testing.T) {
+		want := "test command command2"
+		subject := &Command{
+			Name: "test",
+			SubCommands: []*Command{
+				{
+					Name: "command",
+					SubCommands: []*Command{
+						{
+							Name: "command2",
+						},
+					},
+				},
+			},
+		}
+
+		subject.SubCommands[0].adjustPath(subject.Name)
+		got := subject.SubCommands[0].SubCommands[0].path
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+}
+
 func TestCommand_FlagWasProvided(t *testing.T) {
 	t.Run("validate flag is found", func(t *testing.T) {
 		want := "I was provided."

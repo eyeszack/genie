@@ -13,7 +13,7 @@ func Test_DefaultUsage(t *testing.T) {
 		want := `The test command is for testing.
 
 USAGE:
-test command [-flags...] [args...]
+command [-flags...] [args...]
 
 HEADING:
 This can be used to provide all kinds of extra usage info.
@@ -30,11 +30,11 @@ FLAGS:
 COMMANDS:
 subcommand	The test command subcommand.
 
-Use "--help" with any command for more information.
+Use "command <command> --help" for more information.
 `
 		subject := &Command{
 			Name:        "command",
-			RunSyntax:   "test command [-flags...] [args...]",
+			RunSyntax:   "[-flags...] [args...]",
 			Description: "The test command is for testing.",
 			ExtraInfo: `HEADING:
 This can be used to provide all kinds of extra usage info.`,
@@ -42,12 +42,12 @@ This can be used to provide all kinds of extra usage info.`,
 			SubCommands: []*Command{
 				{
 					Name:        "subcommand",
-					RunSyntax:   "test command subcommand [-flags...] [args...]",
+					RunSyntax:   "[-flags...] [args...]",
 					Description: "The test command subcommand.",
 				},
 				{
 					Name:        "shhh",
-					RunSyntax:   "test command shhh [-flags...] [args...]",
+					RunSyntax:   "[-flags...] [args...]",
 					Description: "shhh.",
 					Secret:      true,
 				},
@@ -61,6 +61,7 @@ This can be used to provide all kinds of extra usage info.`,
 		subject.Flags.Float64("price", 1.5, "this is a float flag")
 		subject.Flags.Duration("time", time.Hour, "this is a duration flag")
 		subject.Flags.Uint("n", 0, "this is a uint flag")
+		subject.AnchorPaths()
 
 		got := subject.ShowUsage()
 		if got != want {
@@ -72,7 +73,7 @@ This can be used to provide all kinds of extra usage info.`,
 		want := `The test command is for testing.
 
 USAGE:
-test command [-flags...] [args...]
+command [-flags...] [args...]
 
 HEADING:
 This can be used to provide all kinds of extra usage info.
@@ -90,11 +91,11 @@ FLAGS:
 COMMANDS:
 subcommand	The test command subcommand.
 
-Use "test <command> --help" for more information.
+Use "command <command> --help" for more information.
 `
 		subject := &Command{
 			Name:        "command",
-			RunSyntax:   "test command [-flags...] [args...]",
+			RunSyntax:   "[-flags...] [args...]",
 			Description: "The test command is for testing.",
 			ExtraInfo: `HEADING:
 This can be used to provide all kinds of extra usage info.`,
@@ -102,16 +103,14 @@ This can be used to provide all kinds of extra usage info.`,
 			SubCommands: []*Command{
 				{
 					Name:        "subcommand",
-					RunSyntax:   "test command subcommand [-flags...] [args...]",
+					RunSyntax:   "[-flags...] [args...]",
 					Description: "The test command subcommand.",
 					root:        false,
-					path:        "test subcommand",
 				},
 			},
 			Usage:          DefaultCommandUsageFunc,
 			MergeFlagUsage: true,
 			root:           true,
-			path:           "test",
 		}
 
 		subject.Flags.String("testing", "", "this is a testing flag")
@@ -126,6 +125,7 @@ This can be used to provide all kinds of extra usage info.`,
 		subject.Flags.Float64("p", 1.5, "this is a float flag")
 		subject.Flags.Duration("d", time.Hour, "this is a duration flag")
 		subject.Flags.Uint("number", 0, "this is a uint flag")
+		subject.AnchorPaths()
 
 		got := subject.ShowUsage()
 		if got != want {
@@ -206,10 +206,14 @@ FLAGS:
 USAGE:
 command
 
+ALIASES:
+cmd
+
 FLAGS:
 --help        display help for command
 `
 		subject := NewCommand("command", false)
+		subject.Aliases = []string{"cmd"}
 		subject.Description = "The test command is for testing."
 		subject.SubCommands = []*Command{{Name: "supersecret", Description: "I'm not known.", Secret: true}}
 		got := subject.ShowUsage()

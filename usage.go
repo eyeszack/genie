@@ -16,11 +16,18 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 	}
 
 	builder.WriteString("\nUSAGE:\n")
-	syntax := command.RunSyntax
-	if syntax == "" {
-		syntax = command.Name
+	if command.path == "" {
+		command.path = command.Name
 	}
-	builder.WriteString(fmt.Sprintf("%s\n", syntax))
+	syntax := fmt.Sprintf("%s %s", command.path, command.RunSyntax)
+	builder.WriteString(fmt.Sprintf("%s\n", strings.Trim(syntax, " ")))
+
+	if len(command.Aliases) > 0 {
+		builder.WriteString("\nALIASES:\n")
+		for _, a := range command.Aliases {
+			builder.WriteString(fmt.Sprintf("%s\n", a))
+		}
+	}
 
 	if command.ExtraInfo != "" {
 		builder.WriteString(fmt.Sprintf("\n%s\n", command.ExtraInfo))

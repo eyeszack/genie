@@ -73,9 +73,9 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) {
 		return nil, ErrNoOp
 	}
 
-	//set some metadata on the root command since we'll know which is root now
+	//set root to true since we know for sure this is the root command, and anchor the paths from root
 	ci.RootCommand.root = true
-	ci.RootCommand.path = ci.RootCommand.Name
+	ci.RootCommand.AnchorPaths()
 
 	//no args will return an error, but some folks may not care
 	if len(args) <= 0 {
@@ -126,7 +126,6 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) {
 			}
 
 			command.root = false
-			command.path = strings.TrimSuffix(strings.Join(args[:flagStart], " "), " ")
 			return command, command.run(args[flagStart:])
 		}
 	}
@@ -142,7 +141,6 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) {
 			return nil, ErrCommandDepthInvalid
 		}
 		command.root = false
-		command.path = strings.TrimSuffix(strings.Join(args[:position+2], " "), " ")
 		return command, command.run(args[position+2:])
 	}
 

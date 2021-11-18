@@ -117,6 +117,20 @@ func (c *Command) ShowUsage() string {
 	return DefaultCommandUsageFunc(c)
 }
 
+func (c *Command) AnchorPaths() {
+	c.path = c.Name
+	for _, sc := range c.SubCommands {
+		sc.adjustPath(c.path)
+	}
+}
+
+func (c *Command) adjustPath(path string) {
+	c.path = fmt.Sprintf("%s %s", path, c.Name)
+	for _, sc := range c.SubCommands {
+		sc.adjustPath(c.path)
+	}
+}
+
 func (c *Command) findSubCommand(name string) (*Command, bool) {
 	for _, command := range c.SubCommands {
 		if name == command.Name {
