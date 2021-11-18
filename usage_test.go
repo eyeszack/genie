@@ -22,6 +22,7 @@ FLAGS:
 --count       int         this is an int count (default 100)
 --help                    display help for command
 --price       float       this is a float flag (default 1.5)
+--slice       []int       this is a custom flag
 --testing     string      this is a testing flag
 --time        duration    this is a duration flag (default 1h0m0s)
 -n            uint        this is a uint flag (default 0)
@@ -32,6 +33,7 @@ subcommand    The test command subcommand.
 
 Use "command <command> --help" for more information.
 `
+		is := IntSlice{}
 		subject := &Command{
 			Name:        "command",
 			RunSyntax:   "[-flags...] [args...]",
@@ -55,6 +57,71 @@ This can be used to provide all kinds of extra usage info.`,
 			Usage: DefaultCommandUsageFunc,
 		}
 
+		subject.Flags.Var(&is, "slice", "this is a custom flag")
+		subject.Flags.String("testing", "", "this is a testing flag")
+		subject.Flags.Bool("v", false, "this is another testing flag")
+		subject.Flags.Int("count", 100, "this is an int count")
+		subject.Flags.Float64("price", 1.5, "this is a float flag")
+		subject.Flags.Duration("time", time.Hour, "this is a duration flag")
+		subject.Flags.Uint("n", 0, "this is a uint flag")
+		subject.AnchorPaths()
+
+		got := subject.ShowUsage()
+		if got != want {
+			t.Errorf("want: %s got: %s", want, got)
+		}
+	})
+
+	t.Run("validate default usage - merged", func(t *testing.T) {
+		want := `The test command is for testing.
+
+USAGE:
+command [-flags...] [args...]
+
+HEADING:
+This can be used to provide all kinds of extra usage info.
+
+FLAGS:
+--count       int         this is an int count (default 100)
+--help                    display help for command
+--price       float       this is a float flag (default 1.5)
+--slice       []int       this is a custom flag
+--testing     string      this is a testing flag
+--time        duration    this is a duration flag (default 1h0m0s)
+-n            uint        this is a uint flag (default 0)
+-v                        this is another testing flag (default false)
+
+COMMANDS:
+subcommand    The test command subcommand.
+
+Use "command <command> --help" for more information.
+`
+		is := IntSlice{}
+		subject := &Command{
+			Name:        "command",
+			RunSyntax:   "[-flags...] [args...]",
+			Description: "The test command is for testing.",
+			ExtraInfo: `HEADING:
+This can be used to provide all kinds of extra usage info.`,
+			Flags: flag.NewFlagSet("command", flag.ExitOnError),
+			SubCommands: []*Command{
+				{
+					Name:        "subcommand",
+					RunSyntax:   "[-flags...] [args...]",
+					Description: "The test command subcommand.",
+				},
+				{
+					Name:        "shhh",
+					RunSyntax:   "[-flags...] [args...]",
+					Description: "shhh.",
+					Secret:      true,
+				},
+			},
+			Usage: DefaultCommandUsageFunc,
+		}
+
+		subject.MergeFlagUsage = true
+		subject.Flags.Var(&is, "slice", "this is a custom flag")
 		subject.Flags.String("testing", "", "this is a testing flag")
 		subject.Flags.Bool("v", false, "this is another testing flag")
 		subject.Flags.Int("count", 100, "this is an int count")
@@ -176,6 +243,7 @@ FLAGS:
 
 	t.Run("validate default usage - flags error", func(t *testing.T) {
 		b := bytes.NewBufferString("")
+		is := IntSlice{}
 		want := `The test command is for testing.
 
 USAGE:
@@ -183,12 +251,14 @@ command
 
 FLAGS:
 --help                  display help for command
+--slice       []int     this is a custom flag
 --testing     string    this is a testing flag
 `
 		subject := NewCommand("command", false)
 		subject.Description = "The test command is for testing."
 		subject.Err = b
 		subject.Flags.String("testing", "", "this is a testing flag")
+		subject.Flags.Var(&is, "slice", "this is a custom flag")
 		subject.Flags.Usage()
 
 		got, err := ioutil.ReadAll(b)

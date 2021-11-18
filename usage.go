@@ -85,12 +85,14 @@ func mergeFlagsUsage(flags *flag.FlagSet, isRoot bool) string {
 				typeOf = "duration"
 			case "*flag.float64Value":
 				typeOf = "float"
-			case "*flag.intValue", "int64Value":
+			case "*flag.intValue", "*flag.int64Value":
 				typeOf = "int"
 			case "*flag.stringValue":
 				typeOf = "string"
-			case "*flag.uintValue", "uint64Value":
+			case "*flag.uintValue", "*flag.uint64Value":
 				typeOf = "uint"
+			case "*geenee.IntSlice":
+				typeOf = "[]int"
 			}
 
 			dashes := "--"
@@ -162,12 +164,14 @@ func flagsUsage(flags *flag.FlagSet, isRoot bool) string {
 				typeOf = " duration"
 			case "*flag.float64Value":
 				typeOf = " float"
-			case "*flag.intValue", "int64Value":
+			case "*flag.intValue", "*flag.int64Value":
 				typeOf = " int"
 			case "*flag.stringValue":
 				typeOf = " string"
-			case "*flag.uintValue", "uint64Value":
+			case "*flag.uintValue", "*flag.uint64Value":
 				typeOf = " uint"
+			case "*geenee.IntSlice":
+				typeOf = " []int"
 			}
 
 			dashes := "--"
