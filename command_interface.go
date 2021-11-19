@@ -60,7 +60,7 @@ func (ci *CommandInterface) SetWriters(o, e io.Writer) {
 }
 
 //Exec executes the CommandInterface with the provided arguments.
-func (ci *CommandInterface) Exec(args []string) error {
+func (ci *CommandInterface) Exec(args []string) error { //all: os.Args() = interface command command -flag value -flag2 value2 arg1 arg2
 	_, err := ci.Execute(args)
 
 	return err
@@ -159,8 +159,8 @@ func (ci *CommandInterface) hasFlags(args []string) (int, bool) {
 }
 
 //path should not contain the interface name
-//if partialAllowed == false, path should only contain commands, no flags/args
-//if partialAllowed == true, path can contain trailing flags/args as it will return last command found if any
+//if partialAllowed == false, path should only contain commands, no flags/args (e.g. command subcommand)
+//if partialAllowed == true, path can contain trailing flags/args as it will return last command found if any (e.g. command subcommand -flag value -flag2 value2 arg1 arg2)
 func (ci *CommandInterface) searchPathForCommand(path []string, partialAllowed bool) (*Command, bool, int) {
 	var lastFoundCommand *Command
 	lastFoundResult := false

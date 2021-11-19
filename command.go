@@ -45,6 +45,7 @@ type Command struct {
 	Secret         bool
 	root           bool   //this is set at execution time
 	path           string //this is set at execution time
+	secretFlags    []string
 }
 
 //NewCommand returns a Command with sensible defaults.
@@ -108,6 +109,11 @@ func (c *Command) FlagWasProvided(name string) bool {
 	return set
 }
 
+//SecretFlag will hide the named flag from usage.
+func (c *Command) SecretFlag(name string) {
+	c.secretFlags = append(c.secretFlags, name)
+}
+
 //ShowUsage runs the provided usage function, or the default if none provided.
 func (c *Command) ShowUsage() string {
 	if c.Usage != nil {
@@ -117,6 +123,7 @@ func (c *Command) ShowUsage() string {
 	return DefaultCommandUsageFunc(c)
 }
 
+//AnchorPaths will set this command as the start of the command path.
 func (c *Command) AnchorPaths() {
 	c.path = c.Name
 	for _, sc := range c.SubCommands {
@@ -147,7 +154,17 @@ func (c *Command) findSubCommand(name string) (*Command, bool) {
 	return nil, false
 }
 
-func (c *Command) run(args []string) error {
+func (c *Command) flagIsSecret(name string) bool {
+	for _, f := range c.secretFlags {
+		if f == name {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (c *Command) run(args []string) error { //only flags/args: -flag value -flag2 value2 arg1 arg2
 	if askedForHelp(args) {
 		if c.Out != nil {
 			fmt.Fprint(c.Out, c.ShowUsage())

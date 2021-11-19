@@ -34,9 +34,9 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 	}
 
 	if command.MergeFlagUsage {
-		builder.WriteString(mergeFlagsUsage(command.Flags, command.root))
+		builder.WriteString(mergeFlagsUsage(command))
 	} else {
-		builder.WriteString(flagsUsage(command.Flags, command.root))
+		builder.WriteString(flagsUsage(command))
 	}
 
 	tabWriter := tabwriter.NewWriter(&builder, 0, 0, 4, ' ', tabwriter.DiscardEmptyColumns)
@@ -65,13 +65,16 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 	return builder.String()
 }
 
-func mergeFlagsUsage(flags *flag.FlagSet, isRoot bool) string {
+func mergeFlagsUsage(command *Command) string {
 	usages := make(map[string][]string)
 
 	var builder strings.Builder
 	tabWriter := tabwriter.NewWriter(&builder, 0, 0, 4, ' ', tabwriter.DiscardEmptyColumns)
-	if flags != nil {
-		flags.VisitAll(func(f *flag.Flag) {
+	if command.Flags != nil {
+		command.Flags.VisitAll(func(f *flag.Flag) {
+			if command.flagIsSecret(f.Name) {
+				return
+			}
 			defaultVal := ""
 			if f.DefValue != "" {
 				defaultVal = fmt.Sprintf(" (default %s)", f.DefValue)
@@ -93,6 +96,8 @@ func mergeFlagsUsage(flags *flag.FlagSet, isRoot bool) string {
 				typeOf = "uint"
 			case "*geenee.IntSlice":
 				typeOf = "[]int"
+			case "*geenee.StringSlice":
+				typeOf = "[]string"
 			}
 
 			dashes := "--"
@@ -114,7 +119,7 @@ func mergeFlagsUsage(flags *flag.FlagSet, isRoot bool) string {
 		})
 	}
 
-	if isRoot {
+	if command.root {
 		//we add the version flag to root since we support it automatically
 		usages["display version information"] = []string{"--version", "\t"}
 	}
@@ -142,14 +147,18 @@ func mergeFlagsUsage(flags *flag.FlagSet, isRoot bool) string {
 	return builder.String()
 }
 
-func flagsUsage(flags *flag.FlagSet, isRoot bool) string {
+func flagsUsage(command *Command) string {
 	flagCount := 0
 	var builder strings.Builder
 	var usages []string
 	tabWriter := tabwriter.NewWriter(&builder, 0, 0, 4, ' ', tabwriter.DiscardEmptyColumns)
 	builder.WriteString("\nFLAGS:\n") //all commands have at least --help
-	if flags != nil {
-		flags.VisitAll(func(f *flag.Flag) {
+	if command.Flags != nil {
+		command.Flags.VisitAll(func(f *flag.Flag) {
+			if command.flagIsSecret(f.Name) {
+				return
+			}
+
 			flagCount++
 			defaultVal := ""
 			if f.DefValue != "" {
@@ -172,6 +181,8 @@ func flagsUsage(flags *flag.FlagSet, isRoot bool) string {
 				typeOf = " uint"
 			case "*geenee.IntSlice":
 				typeOf = " []int"
+			case "*geenee.StringSlice":
+				typeOf = " []string"
 			}
 
 			dashes := "--"
@@ -182,7 +193,7 @@ func flagsUsage(flags *flag.FlagSet, isRoot bool) string {
 		})
 	}
 
-	if isRoot {
+	if command.root {
 		//we add the version flag to root since we support it automatically
 		flagCount++
 		usages = append(usages, fmt.Sprintf("%s\t%s\t%s\n", "--version", "", "display version information"))

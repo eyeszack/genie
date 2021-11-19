@@ -283,6 +283,21 @@ func TestCommand_findSubCommand(t *testing.T) {
 	})
 }
 
+func TestCommand_flagIsSecret(t *testing.T) {
+	t.Run("validate secret flag is secret", func(t *testing.T) {
+		subject := Command{Name: "test"}
+		subject.SecretFlag("shhh")
+
+		if !subject.flagIsSecret("shhh") {
+			t.Errorf("want true, got false")
+		}
+
+		if subject.flagIsSecret("nope") {
+			t.Errorf("want false, got true")
+		}
+	})
+}
+
 func TestCommand_run(t *testing.T) {
 	t.Run("validate command runs", func(t *testing.T) {
 		b := bytes.NewBufferString("")

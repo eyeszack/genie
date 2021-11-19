@@ -92,7 +92,7 @@ func TestIntSlice_Set(t *testing.T) {
 		}
 
 		if len(subject) != 2 {
-			t.Errorf("want 5, got %d", len(subject))
+			t.Fatalf("want 2, got %d", len(subject))
 		}
 
 		for i, got := range subject {
@@ -116,7 +116,7 @@ func TestIntSlice_FlagParse(t *testing.T) {
 		}
 
 		if len(subject) != 5 {
-			t.Errorf("want 5, got %d", len(subject))
+			t.Fatalf("want 5, got %d", len(subject))
 		}
 
 		for i, got := range subject {
@@ -134,16 +134,131 @@ func TestIntSlice_FlagParse(t *testing.T) {
 		fs.Var(&subject, "subject", "the test subject")
 		err := fs.Parse([]string{"--subject", "3", "--subject", "6", "--subject", "dang", "--subject", "x,y,z"})
 		if err == nil {
-			t.Error("expected an err, got nil")
+			t.Fatalf("expected an err, got nil")
 		}
 
 		if len(subject) != 2 {
-			t.Errorf("want 5, got %d", len(subject))
+			t.Fatalf("want 2, got %d", len(subject))
 		}
 
 		for i, got := range subject {
 			if got != want[i] {
 				t.Errorf("want %d, got %d", want[i], got)
+			}
+		}
+	})
+}
+
+func TestStringSlice_String(t *testing.T) {
+	t.Run("validate the expected string value", func(t *testing.T) {
+		want := "heyo"
+		subject := StringSlice{"heyo"}
+		got := subject.String()
+
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate the expected string values", func(t *testing.T) {
+		want := "heyo, playo, comma,here, 9"
+		subject := StringSlice{"heyo", "playo", "comma,here", "9"}
+		got := subject.String()
+
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+}
+
+func TestStringSlice_Set(t *testing.T) {
+	t.Run("validate the expected value is set", func(t *testing.T) {
+		want := "heyo"
+		subject := StringSlice{}
+		err := subject.Set("heyo")
+		if err != nil {
+			t.Fatalf("unexpected err, %s", err)
+		}
+
+		got := subject[0]
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate the expected values are set", func(t *testing.T) {
+		want := []string{"heyo", "playo", "comma,here", "9"}
+		subject := StringSlice{}
+		err := subject.Set("heyo")
+		if err != nil {
+			t.Fatalf("unexpected err, %s", err)
+		}
+		err = subject.Set("playo,\"comma,here\",9")
+		if err != nil {
+			t.Fatalf("unexpected err, %s", err)
+		}
+
+		if len(subject) != 4 {
+			t.Fatalf("want 4, got %d", len(subject))
+		}
+
+		for i, got := range subject {
+			if got != want[i] {
+				t.Errorf("want %s, got %s", want[i], got)
+			}
+		}
+	})
+
+	t.Run("validate an error is returned when invalid string provided", func(t *testing.T) {
+		subject := StringSlice{}
+		err := subject.Set("playo, \"comma,here\",9")
+		if err == nil {
+			t.Fatalf("expected error, got nil")
+		}
+	})
+}
+
+func TestStringSlice_FlagParse(t *testing.T) {
+	t.Run("validate the expected values are set", func(t *testing.T) {
+		want := []string{"heyo", "playo", "comma,here", "9"}
+		subject := StringSlice{}
+
+		fs := flag.NewFlagSet("test", flag.ContinueOnError)
+		fs.Var(&subject, "subject", "the test subject")
+		err := fs.Parse([]string{"--subject", "heyo", "--subject", "playo,\"comma,here\"", "--subject", "9"})
+		if err != nil {
+			t.Fatalf("unexpected err, %s", err)
+		}
+
+		if len(subject) != 4 {
+			t.Fatalf("want 4, got %d", len(subject))
+		}
+
+		for i, got := range subject {
+			if got != want[i] {
+				t.Errorf("want %s, got %s", want[i], got)
+			}
+		}
+	})
+
+	t.Run("validate error is returned when value is invalid", func(t *testing.T) {
+		want := []string{"heyo"}
+		subject := StringSlice{}
+
+		fs := flag.NewFlagSet("test", flag.ContinueOnError)
+		fs.Var(&subject, "subject", "the test subject")
+		err := fs.Parse([]string{"--subject", "heyo", "--subject", "playo, \"comma,here\",9"})
+		if err == nil {
+			t.Error("expected an err, got nil")
+		}
+
+		if len(subject) != 1 {
+			t.Errorf("want 1, got %d", len(subject))
+		}
+
+		for i, got := range subject {
+			if got != want[i] {
+				t.Errorf("want %s, got %s", want[i], got)
 			}
 		}
 	})
