@@ -600,6 +600,38 @@ func TestCommandInterface_Exec(t *testing.T) {
 			t.Errorf("want: %s, got %s", want, string(got))
 		}
 	})
+
+	t.Run("validate interface runs if interface name and arg[0] don't match", func(t *testing.T) {
+		want := "root command ran"
+		b := bytes.NewBufferString("")
+		subject := &CommandInterface{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				Run: func(command *Command) error {
+					command.Out.Write([]byte("root command ran"))
+					return nil
+				},
+				Out: b,
+				Err: b,
+			},
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
+		}
+		err := subject.Exec([]string{"notvalid"})
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
 }
 
 func TestCommandInterface_Exec_error(t *testing.T) {
@@ -625,21 +657,6 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 			MaxCommandDepth: 3,
 		}
 		got := subject.Exec([]string{"test"})
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
-		}
-	})
-
-	t.Run("validate interface returns error if different interface called", func(t *testing.T) {
-		want := ErrInvalidInterfaceName
-		subject := &CommandInterface{
-			Name: "test",
-			RootCommand: &Command{
-				Name: "test",
-			},
-			MaxCommandDepth: 3,
-		}
-		got := subject.Exec([]string{"notvalid"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
