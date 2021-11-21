@@ -59,15 +59,8 @@ func (ci *CommandInterface) SetWriters(o, e io.Writer) {
 	}
 }
 
-//Exec executes the CommandInterface with the provided arguments.
-func (ci *CommandInterface) Exec(args []string) error { //all: os.Args() = interface command command -flag value -flag2 value2 arg1 arg2
-	_, err := ci.Execute(args)
-
-	return err
-}
-
 //Execute executes the CommandInterface with the provided arguments, returns the command executed if found.
-func (ci *CommandInterface) Execute(args []string) (*Command, error) {
+func (ci *CommandInterface) Execute(args []string) (*Command, error) { //all: os.Args() = interface command command -flag value -flag2 value2 arg1 arg2
 	//if we have no root command there is nothing we can do
 	if ci.RootCommand == nil {
 		return nil, ErrNoOp

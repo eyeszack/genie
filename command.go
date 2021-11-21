@@ -123,6 +123,12 @@ func (c *Command) ShowUsage() string {
 	return DefaultCommandUsageFunc(c)
 }
 
+//Path returns the path to this command from the "anchor" command.
+//The path will be blank until AnchorPaths is called here or on a parent command, or when command interface is executed.
+func (c *Command) Path() string {
+	return c.path
+}
+
 //AnchorPaths will set this command as the start of the command path.
 func (c *Command) AnchorPaths() {
 	c.path = c.Name
@@ -165,20 +171,24 @@ func (c *Command) flagIsSecret(name string) bool {
 }
 
 func (c *Command) run(args []string) error { //only flags/args: -flag value -flag2 value2 arg1 arg2
+	return DefaultCommandRunner(c, args)
+}
+
+var DefaultCommandRunner = func(command *Command, args []string) error { //only flags/args: -flag value -flag2 value2 arg1 arg2
 	if askedForHelp(args) {
-		if c.Out != nil {
-			fmt.Fprint(c.Out, c.ShowUsage())
+		if command.Out != nil {
+			fmt.Fprint(command.Out, command.ShowUsage())
 			return nil
 		}
 		return flag.ErrHelp
 	}
 
-	if c.Run == nil {
+	if command.Run == nil {
 		return ErrCommandNotRunnable
 	}
 
-	if c.Flags != nil {
-		err := c.Flags.Parse(args)
+	if command.Flags != nil {
+		err := command.Flags.Parse(args)
 		//technically we'd not get here if flagset error handling is set to flag.ExitOnError, or flag.PanicOnError,
 		//but for folks who use ContinueOnError we can return the error for custom handling if desired
 		if err != nil {
@@ -186,14 +196,14 @@ func (c *Command) run(args []string) error { //only flags/args: -flag value -fla
 		}
 	}
 
-	if c.Check != nil {
-		err := c.Check(c)
+	if command.Check != nil {
+		err := command.Check(command)
 		if err != nil {
 			return err
 		}
 	}
 
-	return c.Run(c)
+	return command.Run(command)
 }
 
 func askedForHelp(args []string) bool {

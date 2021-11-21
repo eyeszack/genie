@@ -106,7 +106,7 @@ func TestCommand_AnchorPaths(t *testing.T) {
 		}
 
 		subject.AnchorPaths()
-		got := subject.SubCommands[0].SubCommands[0].path
+		got := subject.SubCommands[0].SubCommands[0].Path()
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
@@ -131,7 +131,7 @@ func TestCommand_adjustPath(t *testing.T) {
 		}
 
 		subject.SubCommands[0].adjustPath(subject.Name)
-		got := subject.SubCommands[0].SubCommands[0].path
+		got := subject.SubCommands[0].SubCommands[0].Path()
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
@@ -438,6 +438,38 @@ FLAGS:
 		err := subject.run([]string{"-help"})
 		if err != nil {
 			t.Errorf("want nil, got %s", err)
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
+}
+
+func Test_DefaultCommandRunner(t *testing.T) {
+	t.Run("validate command checks and runs", func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		want := "check rancommand ran"
+		subject := &Command{
+			Name: "command",
+			Out:  b,
+			Err:  b,
+			Check: func(command *Command) error {
+				command.Out.Write([]byte("check ran"))
+				return nil
+			},
+			Run: func(command *Command) error {
+				command.Out.Write([]byte("command ran"))
+				return nil
+			},
+		}
+
+		err := DefaultCommandRunner(subject, []string{"-flag", "value"})
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
 		}
 		got, err := ioutil.ReadAll(b)
 		if err != nil {

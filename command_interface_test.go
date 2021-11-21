@@ -183,7 +183,7 @@ func TestCommandInterface_Exec(t *testing.T) {
 			Version:         "test 0.0.0",
 			MaxCommandDepth: 3,
 		}
-		err := subject.Exec([]string{"test", "-version"})
+		_, err := subject.Execute([]string{"test", "-version"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -214,7 +214,7 @@ func TestCommandInterface_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		err := subject.Exec([]string{"test"})
+		_, err := subject.Execute([]string{"test"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -245,7 +245,7 @@ func TestCommandInterface_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		err := subject.Exec([]string{"test", "notaflag", "notasubcommand"})
+		_, err := subject.Execute([]string{"test", "notaflag", "notasubcommand"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -276,7 +276,7 @@ func TestCommandInterface_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		err := subject.Exec([]string{"test"})
+		_, err := subject.Execute([]string{"test"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -307,7 +307,7 @@ func TestCommandInterface_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		err := subject.Exec([]string{"test", "-flag", "value"})
+		_, err := subject.Execute([]string{"test", "-flag", "value"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -349,7 +349,7 @@ func TestCommandInterface_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		err := subject.Exec([]string{"test", "command"})
+		_, err := subject.Execute([]string{"test", "command"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -391,7 +391,7 @@ func TestCommandInterface_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		err := subject.Exec([]string{"test", "command", "-flag", "value"})
+		_, err := subject.Execute([]string{"test", "command", "-flag", "value"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -448,8 +448,8 @@ func TestCommandInterface_Exec(t *testing.T) {
 									if command.root {
 										t.Errorf("want: false, got %t", command.root)
 									}
-									if command.path != wantPath {
-										t.Errorf("want: %s, got %s", wantPath, command.path)
+									if command.Path() != wantPath {
+										t.Errorf("want: %s, got %s", wantPath, command.Path())
 									}
 									return nil
 								},
@@ -462,7 +462,7 @@ func TestCommandInterface_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		err := subject.Exec([]string{"test", "command", "subcommand", "immaarg", "metoo"})
+		_, err := subject.Execute([]string{"test", "command", "subcommand", "immaarg", "metoo"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -525,7 +525,7 @@ func TestCommandInterface_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		err := subject.Exec([]string{"test", "command", "subcommand", "-flag", "value"})
+		_, err := subject.Execute([]string{"test", "command", "subcommand", "-flag", "value"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -588,7 +588,7 @@ func TestCommandInterface_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		err := subject.Exec([]string{"/home/usr/bin/test", "command", "subcommand", "-flag", "value"})
+		_, err := subject.Execute([]string{"/home/usr/bin/test", "command", "subcommand", "-flag", "value"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -619,7 +619,7 @@ func TestCommandInterface_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		err := subject.Exec([]string{"notvalid"})
+		_, err := subject.Execute([]string{"notvalid"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -644,7 +644,7 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 			},
 			MaxCommandDepth: 3,
 		}
-		got := subject.Exec(nil)
+		_, got := subject.Execute(nil)
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
@@ -656,7 +656,7 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 			Name:            "test",
 			MaxCommandDepth: 3,
 		}
-		got := subject.Exec([]string{"test"})
+		_, got := subject.Execute([]string{"test"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
@@ -668,7 +668,7 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 			Name:            "test",
 			MaxCommandDepth: 3,
 		}
-		got := subject.Exec([]string{"test", "nope"})
+		_, got := subject.Execute([]string{"test", "nope"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
@@ -692,7 +692,7 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 			},
 			MaxCommandDepth: 3,
 		}
-		got := subject.Exec([]string{"test", "nope"})
+		_, got := subject.Execute([]string{"test", "nope"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
@@ -712,7 +712,7 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 			},
 			MaxCommandDepth: 3,
 		}
-		got := subject.Exec([]string{"test", "command", "nope"})
+		_, got := subject.Execute([]string{"test", "command", "nope"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
@@ -736,7 +736,7 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 			},
 			MaxCommandDepth: 3,
 		}
-		got := subject.Exec([]string{"test", "nope", "-flag", "value"})
+		_, got := subject.Execute([]string{"test", "nope", "-flag", "value"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
@@ -769,7 +769,7 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 			},
 			MaxCommandDepth: 3,
 		}
-		got := subject.Exec([]string{"test", "command", "nope", "-flag", "value"})
+		_, got := subject.Execute([]string{"test", "command", "nope", "-flag", "value"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
@@ -802,7 +802,7 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 			},
 			MaxCommandDepth: 3,
 		}
-		got := subject.Exec([]string{"test", "nope", "subcommand", "-flag", "value"})
+		_, got := subject.Execute([]string{"test", "nope", "subcommand", "-flag", "value"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
@@ -835,7 +835,7 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 			},
 			MaxCommandDepth: 3,
 		}
-		got := subject.Exec([]string{"test", "command", "subcommand", "subsubcommand", "-flag", "value"})
+		_, got := subject.Execute([]string{"test", "command", "subcommand", "subsubcommand", "-flag", "value"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
@@ -873,7 +873,7 @@ func TestCommandInterface_Exec_error(t *testing.T) {
 			},
 			MaxCommandDepth: 3,
 		}
-		got := subject.Exec([]string{"test", "command", "subcommand", "subsubcommand", "arg1", "arg2"})
+		_, got := subject.Execute([]string{"test", "command", "subcommand", "subsubcommand", "arg1", "arg2"})
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
 		}
