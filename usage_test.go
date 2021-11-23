@@ -254,16 +254,22 @@ FLAGS:
 		want := `The test command is for testing.
 
 USAGE:
-command
+command --testing heyo
+command --slice 2,3 <test_string>...
 
 FLAGS:
 --help                    display help for command
 --slice       []int       this is a custom flag
 --slices      []string    this is a custom flag 2
 --testing     string      this is a testing flag
+
+ARGUMENTS:
+One or more test strings can be supplied.
 `
 		subject := NewCommand("command", false)
+		subject.RunSyntax = "--testing heyo\n{{path}} --slice 2,3 <test_string>..."
 		subject.Description = "The test command is for testing."
+		subject.ArgInfo = "One or more test strings can be supplied."
 		subject.Err = b
 		subject.Flags.String("testing", "", "this is a testing flag")
 		subject.Flags.Var(&is, "slice", "this is a custom flag")

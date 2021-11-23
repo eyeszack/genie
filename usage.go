@@ -19,7 +19,7 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 	if command.path == "" {
 		command.path = command.Name
 	}
-	syntax := fmt.Sprintf("%s %s", command.path, command.RunSyntax)
+	syntax := fmt.Sprintf("%s %s", command.path, strings.ReplaceAll(command.RunSyntax, "{{path}}", command.path))
 	builder.WriteString(fmt.Sprintf("%s\n", strings.Trim(syntax, " ")))
 
 	if len(command.Aliases) > 0 {
@@ -37,6 +37,11 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 		builder.WriteString(mergeFlagsUsage(command))
 	} else {
 		builder.WriteString(flagsUsage(command))
+	}
+
+	if command.ArgInfo != "" {
+		builder.WriteString("\nARGUMENTS:\n")
+		builder.WriteString(fmt.Sprintf("%s\n", command.ArgInfo))
 	}
 
 	tabWriter := tabwriter.NewWriter(&builder, 0, 0, 4, ' ', tabwriter.DiscardEmptyColumns)

@@ -32,6 +32,7 @@ type Command struct {
 	Aliases        []string
 	RunSyntax      string
 	Description    string
+	ArgInfo        string
 	ExtraInfo      string
 	Flags          *flag.FlagSet
 	SubCommands    []*Command
