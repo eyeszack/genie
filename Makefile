@@ -2,14 +2,10 @@ BUILD_COMMIT := $(shell git describe --tags --always --dirty --match=v*)
 BUILD_DATE := $(shell date -u +%b-%d-%Y,%T-UTC)
 BUILD_SEMVER := $(shell cat .SEMVER)
 
-.PHONY: all build clean release dirty-check test help
+.PHONY: all clean release dirty-check test help
 
 # target: all - default target, will trigger build
-all: test build
-
-# target: build - runs wiklet-core build for local os/arch
-build:
-	go build .
+all: test
 
 # target: clean - removes all build and test artifacts
 clean:
@@ -21,8 +17,8 @@ test:
 	go test ./... -race -cover -coverprofile=results/tc.out
 	go tool cover -html=results/tc.out -o results/coverage.html
 
-# target: release - will clean, build, test, and finally creates a git tag for the version
-release: dirty-check clean build test
+# target: release - will clean, test, and finally creates a git tag for the version
+release: dirty-check clean test
 	git tag v$(BUILD_SEMVER) $(BUILD_COMMIT)
 	git push origin v$(BUILD_SEMVER)
 
