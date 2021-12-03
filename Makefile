@@ -4,10 +4,10 @@ BUILD_SEMVER := $(shell cat .SEMVER)
 
 .PHONY: all clean release dirty-check test help
 
-# target: all - default target, will trigger build
+# target: all - default target, will trigger tests
 all: test
 
-# target: clean - removes all build and test artifacts
+# target: clean - removes all test artifacts
 clean:
 	@-rm -rf results
 
