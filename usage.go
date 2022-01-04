@@ -8,6 +8,10 @@ import (
 	"text/tabwriter"
 )
 
+type UsageAwareFlagValue interface {
+	Type() string
+}
+
 var DefaultCommandUsageFunc = func(command *Command) string {
 	var builder strings.Builder
 
@@ -99,6 +103,11 @@ func mergeFlagsUsage(command *Command) string {
 				typeOf = "string"
 			case "*flag.uintValue", "*flag.uint64Value":
 				typeOf = "uint"
+			default:
+				u, ok := f.Value.(UsageAwareFlagValue)
+				if ok {
+					typeOf = u.Type()
+				}
 			}
 
 			dashes := "--"
@@ -180,6 +189,11 @@ func flagsUsage(command *Command) string {
 				typeOf = " string"
 			case "*flag.uintValue", "*flag.uint64Value":
 				typeOf = " uint"
+			default:
+				u, ok := f.Value.(UsageAwareFlagValue)
+				if ok {
+					typeOf = fmt.Sprintf(" %s", u.Type())
+				}
 			}
 
 			dashes := "--"

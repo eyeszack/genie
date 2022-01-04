@@ -8,8 +8,26 @@ import (
 	"time"
 )
 
+type testFlag struct {
+	value string
+}
+
+func (t *testFlag) String() string {
+	return t.value
+}
+
+func (t *testFlag) Set(s string) error {
+	t.value = s
+	return nil
+}
+
+func (t *testFlag) Type() string {
+	return "testFlag"
+}
+
 func Test_DefaultUsage(t *testing.T) {
 	t.Run("validate default usage", func(t *testing.T) {
+		tf := testFlag{}
 		want := `The test command is for testing.
 
 USAGE:
@@ -26,6 +44,7 @@ FLAGS:
 --time        duration    this is a duration flag (default 1h0m0s)
 -n            uint        this is a uint flag (default 0)
 -v                        this is another testing flag (default false)
+-z            testFlag    this is a custom flag
 
 COMMANDS:
 subcommand    The test command subcommand.
@@ -61,6 +80,7 @@ This can be used to provide all kinds of extra usage info.`,
 		subject.Flags.Float64("price", 1.5, "this is a float flag")
 		subject.Flags.Duration("time", time.Hour, "this is a duration flag")
 		subject.Flags.Uint("n", 0, "this is a uint flag")
+		subject.Flags.Var(&tf, "z", "this is a custom flag")
 		subject.AnchorPaths()
 
 		got := subject.ShowUsage()
@@ -70,6 +90,7 @@ This can be used to provide all kinds of extra usage info.`,
 	})
 
 	t.Run("validate default usage - merged", func(t *testing.T) {
+		tf := testFlag{}
 		want := `The test command is for testing.
 
 USAGE:
@@ -86,6 +107,7 @@ FLAGS:
 --time        duration    this is a duration flag (default 1h0m0s)
 -n            uint        this is a uint flag (default 0)
 -v                        this is another testing flag (default false)
+-z            testFlag    this is a custom flag
 
 COMMANDS:
 subcommand    The test command subcommand.
@@ -122,6 +144,7 @@ This can be used to provide all kinds of extra usage info.`,
 		subject.Flags.Float64("price", 1.5, "this is a float flag")
 		subject.Flags.Duration("time", time.Hour, "this is a duration flag")
 		subject.Flags.Uint("n", 0, "this is a uint flag")
+		subject.Flags.Var(&tf, "z", "this is a custom flag")
 		subject.AnchorPaths()
 
 		got := subject.ShowUsage()
