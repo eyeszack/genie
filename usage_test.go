@@ -22,8 +22,6 @@ FLAGS:
 --count       int         this is an int count (default 100)
 --help                    display help for command
 --price       float       this is a float flag (default 1.5)
---slice       []int       this is a custom flag
---slices      []string    this is a custom flag 2
 --testing     string      this is a testing flag
 --time        duration    this is a duration flag (default 1h0m0s)
 -n            uint        this is a uint flag (default 0)
@@ -34,8 +32,6 @@ subcommand    The test command subcommand.
 
 Use "command <command> --help" for more information.
 `
-		is := IntSlice{}
-		ss := StringSlice{}
 		subject := &Command{
 			Name:        "command",
 			RunSyntax:   "[-flags...] [args...]",
@@ -59,8 +55,6 @@ This can be used to provide all kinds of extra usage info.`,
 			Usage: DefaultCommandUsageFunc,
 		}
 
-		subject.Flags.Var(&is, "slice", "this is a custom flag")
-		subject.Flags.Var(&ss, "slices", "this is a custom flag 2")
 		subject.Flags.String("testing", "", "this is a testing flag")
 		subject.Flags.Bool("v", false, "this is another testing flag")
 		subject.Flags.Int("count", 100, "this is an int count")
@@ -88,8 +82,6 @@ FLAGS:
 --count       int         this is an int count (default 100)
 --help                    display help for command
 --price       float       this is a float flag (default 1.5)
---slice       []int       this is a custom flag
---slices      []string    this is a custom flag 2
 --testing     string      this is a testing flag
 --time        duration    this is a duration flag (default 1h0m0s)
 -n            uint        this is a uint flag (default 0)
@@ -100,8 +92,6 @@ subcommand    The test command subcommand.
 
 Use "command <command> --help" for more information.
 `
-		is := IntSlice{}
-		ss := StringSlice{}
 		subject := &Command{
 			Name:        "command",
 			RunSyntax:   "[-flags...] [args...]",
@@ -126,8 +116,6 @@ This can be used to provide all kinds of extra usage info.`,
 		}
 
 		subject.MergeFlagUsage = true
-		subject.Flags.Var(&is, "slice", "this is a custom flag")
-		subject.Flags.Var(&ss, "slices", "this is a custom flag 2")
 		subject.Flags.String("testing", "", "this is a testing flag")
 		subject.Flags.Bool("v", false, "this is another testing flag")
 		subject.Flags.Int("count", 100, "this is an int count")
@@ -249,8 +237,6 @@ FLAGS:
 
 	t.Run("validate default usage - flags error", func(t *testing.T) {
 		b := bytes.NewBufferString("")
-		is := IntSlice{}
-		ss := StringSlice{}
 		want := `The test command is for testing.
 
 USAGE:
@@ -258,10 +244,8 @@ command --testing heyo
 command --slice 2,3 <test_string>...
 
 FLAGS:
---help                    display help for command
---slice       []int       this is a custom flag
---slices      []string    this is a custom flag 2
---testing     string      this is a testing flag
+--help                  display help for command
+--testing     string    this is a testing flag
 
 ARGUMENTS:
 One or more test strings can be supplied.
@@ -272,8 +256,6 @@ One or more test strings can be supplied.
 		subject.ArgInfo = "One or more test strings can be supplied."
 		subject.Err = b
 		subject.Flags.String("testing", "", "this is a testing flag")
-		subject.Flags.Var(&is, "slice", "this is a custom flag")
-		subject.Flags.Var(&ss, "slices", "this is a custom flag 2")
 		subject.Flags.String("hideme", "", "i should not show up")
 		subject.SecretFlag("hideme")
 		subject.Flags.Usage()

@@ -99,10 +99,6 @@ func mergeFlagsUsage(command *Command) string {
 				typeOf = "string"
 			case "*flag.uintValue", "*flag.uint64Value":
 				typeOf = "uint"
-			case "*geenee.IntSlice":
-				typeOf = "[]int"
-			case "*geenee.StringSlice":
-				typeOf = "[]string"
 			}
 
 			dashes := "--"
@@ -184,10 +180,6 @@ func flagsUsage(command *Command) string {
 				typeOf = " string"
 			case "*flag.uintValue", "*flag.uint64Value":
 				typeOf = " uint"
-			case "*geenee.IntSlice":
-				typeOf = " []int"
-			case "*geenee.StringSlice":
-				typeOf = " []string"
 			}
 
 			dashes := "--"
