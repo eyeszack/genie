@@ -12,13 +12,11 @@ type GeeneeError string
 func (c GeeneeError) Error() string { return string(c) }
 
 var (
-	ErrNoOp                 = GeeneeError("noop")
-	ErrInvalidInterfaceName = GeeneeError("invalid interface name provided")
-	ErrNoArgs               = GeeneeError("arguments not provided")
-	ErrInvalidSyntax        = GeeneeError("interface/command syntax was invalid")
-	ErrCommandDepthInvalid  = GeeneeError("invalid command depth")
-	ErrCommandNotFound      = GeeneeError("command not found")
-	ErrCommandNotRunnable   = GeeneeError("command not runnable")
+	ErrNoOp                = GeeneeError("noop")
+	ErrNoArgs              = GeeneeError("arguments not provided")
+	ErrCommandDepthInvalid = GeeneeError("invalid command depth")
+	ErrCommandNotFound     = GeeneeError("command not found")
+	ErrCommandNotRunnable  = GeeneeError("command not runnable")
 )
 
 //CommandInterface is a very simple representation of a Command Line Interface or any interface with commands.
