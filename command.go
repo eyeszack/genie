@@ -82,7 +82,7 @@ func (c *Command) SetOut(o io.Writer) {
 	}
 }
 
-//SetOut sets the command's error writer, flags output writer, and all of it's subcommand's as well.
+//SetErr sets the command's error writer, flags output writer, and all of it's subcommand's as well.
 func (c *Command) SetErr(e io.Writer) {
 	c.Err = e
 	//if flags set and not noop via silenced, set output
@@ -209,7 +209,7 @@ var DefaultCommandRunner = func(command *Command, args []string) error { //only 
 
 func askedForHelp(args []string) bool {
 	for _, flag := range args {
-		if flag == "-help" || flag == "--help" || flag == "-h" || flag == "--h" {
+		if flag == "-help" || flag == "--help" {
 			return true
 		}
 	}
