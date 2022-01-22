@@ -18,9 +18,9 @@ func Test_DefaultMarkedUsage(t *testing.T) {
 command [-flags...] [args...]
 
 ::HEADER::HEADING:::HEADER-END::
-This can be used to provide all kinds of extra usage info.::HEADER::
+This can be used to provide all kinds of extra usage info.
 
-HEADING2:::HEADER-END::
+::HEADER::HEADING2:::HEADER-END::
 Good stuff!
 
 ::HEADER::FLAGS:::HEADER-END::
