@@ -119,7 +119,7 @@ func mergeFlagsUsageMarked(command *Command) string {
 				existingFlags = append([]string{dashedFlag}, existingFlags...)
 				usages[usage] = existingFlags
 			} else {
-				temp := []string{dashedFlag, "\t" + typeOf}
+				temp := []string{dashedFlag + "::FLAG-END::", "\t" + typeOf}
 				usages[usage] = temp
 			}
 		})
@@ -127,14 +127,14 @@ func mergeFlagsUsageMarked(command *Command) string {
 
 	if command.root {
 		//we add the version flag to root since we support it automatically
-		usages["display version information"] = []string{"--version", "\t"}
+		usages["display version information"] = []string{"--version::FLAG-END::", "\t"}
 	}
-	usages["display help for command"] = []string{"--help", "\t"}
+	usages["display help for command"] = []string{"--help::FLAG-END::", "\t"}
 
 	//now we sort the flag usage to match flag package
 	sorted := make([]string, len(usages))
 	for k, v := range usages {
-		sorted = append(sorted, fmt.Sprintf("::FLAG::%s::FLAG-END::\t%s\n", strings.TrimSuffix(strings.Join(v, " "), " "), k))
+		sorted = append(sorted, fmt.Sprintf("::FLAG::%s\t%s\n", strings.TrimSuffix(strings.Join(v, " "), " "), k))
 	}
 
 	sort.Slice(sorted, func(i, j int) bool {
