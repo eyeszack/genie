@@ -3,6 +3,7 @@ package geenee
 import (
 	"flag"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 	"text/tabwriter"
@@ -30,7 +31,14 @@ var DefaultCommandUsageMarkedFunc = func(command *Command) string {
 	}
 
 	if command.ExtraInfo != "" {
-		builder.WriteString(fmt.Sprintf("\n%s\n", command.ExtraInfo))
+		tempString := command.ExtraInfo
+		re := regexp.MustCompile(`(?U)([A-Z_\d\s]+:)`) //HEADER_ONLY_ON_LINE:
+		matches := re.FindAllString(tempString, -1)
+		for _, header := range matches {
+			tempString = strings.Replace(tempString, header, fmt.Sprintf("::HEADER::%s::HEADER-END::", header), 1)
+		}
+
+		builder.WriteString(fmt.Sprintf("\n%s\n", tempString))
 	}
 
 	if command.MergeFlagUsage {

@@ -17,8 +17,11 @@ func Test_DefaultMarkedUsage(t *testing.T) {
 ::HEADER::USAGE:::HEADER-END::
 command [-flags...] [args...]
 
-HEADING:
-This can be used to provide all kinds of extra usage info.
+::HEADER::HEADING:::HEADER-END::
+This can be used to provide all kinds of extra usage info.::HEADER::
+
+HEADING2:::HEADER-END::
+Good stuff!
 
 ::HEADER::FLAGS:::HEADER-END::
 ::FLAG::--count::FLAG-END::       int         this is an int count (default 100)
@@ -40,7 +43,10 @@ Use "command <command> --help" for more information.
 			RunSyntax:   "[-flags...] [args...]",
 			Description: "The test command is for testing.",
 			ExtraInfo: `HEADING:
-This can be used to provide all kinds of extra usage info.`,
+This can be used to provide all kinds of extra usage info.
+
+HEADING2:
+Good stuff!`,
 			Flags: flag.NewFlagSet("command", flag.ExitOnError),
 			SubCommands: []*Command{
 				{
@@ -80,7 +86,7 @@ This can be used to provide all kinds of extra usage info.`,
 ::HEADER::USAGE:::HEADER-END::
 command [-flags...] [args...]
 
-HEADING:
+::HEADER::HEADING:::HEADER-END::
 This can be used to provide all kinds of extra usage info.
 
 ::HEADER::FLAGS:::HEADER-END::
@@ -143,7 +149,7 @@ This can be used to provide all kinds of extra usage info.`,
 ::HEADER::USAGE:::HEADER-END::
 command [-flags...] [args...]
 
-HEADING:
+::HEADER::HEADING:::HEADER-END::
 This can be used to provide all kinds of extra usage info.
 
 ::HEADER::FLAGS:::HEADER-END::
