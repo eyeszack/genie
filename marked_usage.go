@@ -32,7 +32,7 @@ var DefaultCommandUsageMarkedFunc = func(command *Command) string {
 
 	if command.ExtraInfo != "" {
 		tempString := command.ExtraInfo
-		re := regexp.MustCompile(`(?U)([A-Z_\d]+:)`) //HEADER_ONLY_ON_LINE:
+		re := regexp.MustCompile(`(?U)([A-Z _\d]+:)`) //HEADER_ONLY_ON_LINE:
 		matches := re.FindAllString(tempString, -1)
 		for _, header := range matches {
 			tempString = strings.Replace(tempString, header, fmt.Sprintf("::HEADER::%s::HEADER-END::", header), 1)

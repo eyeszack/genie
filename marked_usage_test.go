@@ -20,7 +20,7 @@ command [-flags...] [args...]
 ::HEADER::HEADING:::HEADER-END::
 This can be used to provide all kinds of extra usage info.
 
-::HEADER::HEADING2:::HEADER-END::
+::HEADER::HEADING 2:::HEADER-END::
 Good stuff!
 
 ::HEADER::FLAGS:::HEADER-END::
@@ -45,7 +45,7 @@ Use "command <command> --help" for more information.
 			ExtraInfo: `HEADING:
 This can be used to provide all kinds of extra usage info.
 
-HEADING2:
+HEADING 2:
 Good stuff!`,
 			Flags: flag.NewFlagSet("command", flag.ExitOnError),
 			SubCommands: []*Command{
