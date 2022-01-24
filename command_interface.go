@@ -74,8 +74,8 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) { //all: os
 	}
 
 	//this could happen if the full path to binary used, or command acts as entrypoint to multiple command interfaces
-	//in either case we want the first arg to refelect the command interface being used
-	if args[0] != ci.Name || strings.HasPrefix(args[0], "-") {
+	//in either case we want the first arg to reflect the command interface being used
+	if args[0] != ci.Name || strings.HasPrefix(args[0], "-") { //HRM: why did I allow for "-" as prefix?
 		args[0] = ci.Name
 	}
 
@@ -165,7 +165,7 @@ func (ci *CommandInterface) searchPathForCommand(path []string, partialAllowed b
 		} else {
 			temp, found := lastFoundCommand.findSubCommand(pathPart)
 			if !found {
-				//now that we've at least found something, we check if a partial fine was requested, if so return last found results
+				//now that we've at least found something, we check if a partial find was requested, if so return last found results
 				if partialAllowed {
 					break
 				}
