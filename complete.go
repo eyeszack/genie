@@ -28,6 +28,11 @@ func (ci *CommandInterface) CompletionReply(line string) string {
 		return reply
 	}
 
+	if strings.HasSuffix(path[len(path)-1], "\t") {
+		path[len(path)-1] = strings.TrimSuffix(path[len(path)-1], "\t")
+		path = append(path, "")
+	}
+
 	cmd, found, pos := ci.searchPathForCommand(path[1:], true)
 	if !found {
 		//let's double check in case the completion request is on root
