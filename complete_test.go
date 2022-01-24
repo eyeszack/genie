@@ -93,6 +93,12 @@ func TestCommandInterface_CompletionReply(t *testing.T) {
 			want:    "cool bro",
 		},
 		{
+			name:    "subcommands returned - full path space then tab",
+			line:    "subject heyo \t",
+			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo", SubCommands: []*Command{&Command{Name: "cool"}, &Command{Name: "bro"}}}, &Command{Name: "playo", SubCommands: []*Command{&Command{Name: "dang"}, &Command{Name: "it"}}}}}},
+			want:    "cool bro",
+		},
+		{
 			name:    "subcommands returned - partial path",
 			line:    "subject heyo c",
 			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo", SubCommands: []*Command{&Command{Name: "cool"}, &Command{Name: "bro"}, &Command{Name: "crazy"}}}, &Command{Name: "playo", SubCommands: []*Command{&Command{Name: "dang"}, &Command{Name: "it"}}}}}},
