@@ -29,7 +29,7 @@ func TestCommandInterface_CompletionReply(t *testing.T) {
 		{
 			name:    "empty",
 			line:    "",
-			subject: &CommandInterface{Name: "subject"},
+			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}}}},
 			want:    "",
 		},
 		{
@@ -57,8 +57,26 @@ func TestCommandInterface_CompletionReply(t *testing.T) {
 			want:    "heyo playo",
 		},
 		{
-			name:    "subcommands returned - full path",
+			name:    "commands on root returned - trailing space",
+			line:    "subject ",
+			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}, &Command{Name: "playo"}}}},
+			want:    "heyo playo",
+		},
+		{
+			name:    "commands on root returned - partial",
+			line:    "subject h",
+			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}, &Command{Name: "playo"}}}},
+			want:    "heyo",
+		},
+		{
+			name:    "subcommands returned - full path no trailing space",
 			line:    "subject heyo",
+			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo", SubCommands: []*Command{&Command{Name: "cool"}, &Command{Name: "bro"}}}, &Command{Name: "playo", SubCommands: []*Command{&Command{Name: "dang"}, &Command{Name: "it"}}}}}},
+			want:    "",
+		},
+		{
+			name:    "subcommands returned - full path trailing space",
+			line:    "subject heyo ",
 			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo", SubCommands: []*Command{&Command{Name: "cool"}, &Command{Name: "bro"}}}, &Command{Name: "playo", SubCommands: []*Command{&Command{Name: "dang"}, &Command{Name: "it"}}}}}},
 			want:    "cool bro",
 		},
