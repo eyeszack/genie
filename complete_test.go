@@ -6,7 +6,7 @@ func Test_GenerateBashCompletion(t *testing.T) {
 	t.Run("validate bash completion", func(t *testing.T) {
 		want := `#!/bin/bash
 function _test () {
-  COMPREPLY=($(test compreply $COMP_LINE));
+  COMPREPLY=($(test compreply "$COMP_LINE"));
 };
 complete -F _test test
 `

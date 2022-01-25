@@ -76,7 +76,7 @@ func (ci *CommandInterface) CompletionReply(line string) string {
 func GenerateBashCompletion(cli *CommandInterface) string {
 	complete := `#!/bin/bash
 function _%s () {
-  COMPREPLY=($(%s compreply $COMP_LINE));
+  COMPREPLY=($(%s compreply "$COMP_LINE"));
 };
 complete -F _%s %s
 `
