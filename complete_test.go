@@ -29,7 +29,7 @@ func TestCommandInterface_CompletionReply(t *testing.T) {
 		{
 			name:    "empty",
 			line:    "",
-			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}}}},
+			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}, &Command{Name: "mayo", Secret: true}}}},
 			want:    "",
 		},
 		{
@@ -47,31 +47,31 @@ func TestCommandInterface_CompletionReply(t *testing.T) {
 		{
 			name:    "command not found",
 			line:    "subject nope",
-			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}}}},
+			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}, &Command{Name: "mayo", Secret: true}}}},
 			want:    "",
 		},
 		{
 			name:    "commands on root returned",
 			line:    "subject",
-			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}, &Command{Name: "playo"}}}},
+			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}, &Command{Name: "playo"}, &Command{Name: "mayo", Secret: true}}}},
 			want:    "heyo playo",
 		},
 		{
 			name:    "commands on root returned - trailing space",
 			line:    "subject ",
-			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}, &Command{Name: "playo"}}}},
+			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}, &Command{Name: "playo"}, &Command{Name: "mayo", Secret: true}}}},
 			want:    "heyo playo",
 		},
 		{
 			name:    "commands on root returned - trailing tab",
 			line:    "subject\t",
-			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}, &Command{Name: "playo"}}}},
+			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}, &Command{Name: "playo"}, &Command{Name: "mayo", Secret: true}}}},
 			want:    "heyo playo",
 		},
 		{
 			name:    "commands on root returned - partial",
 			line:    "subject h",
-			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}, &Command{Name: "playo"}}}},
+			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo"}, &Command{Name: "playo"}, &Command{Name: "mayo", Secret: true}}}},
 			want:    "heyo",
 		},
 		{
@@ -89,7 +89,7 @@ func TestCommandInterface_CompletionReply(t *testing.T) {
 		{
 			name:    "subcommands returned - full path trailing tab",
 			line:    "subject heyo\t",
-			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo", SubCommands: []*Command{&Command{Name: "cool"}, &Command{Name: "bro"}}}, &Command{Name: "playo", SubCommands: []*Command{&Command{Name: "dang"}, &Command{Name: "it"}}}}}},
+			subject: &CommandInterface{Name: "subject", RootCommand: &Command{Name: "subject", SubCommands: []*Command{&Command{Name: "heyo", SubCommands: []*Command{&Command{Name: "cool"}, &Command{Name: "bro"}, &Command{Name: "man", Secret: true}}}, &Command{Name: "playo", SubCommands: []*Command{&Command{Name: "dang"}, &Command{Name: "it"}}}}}},
 			want:    "cool bro",
 		},
 		{

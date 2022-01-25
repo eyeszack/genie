@@ -18,9 +18,15 @@ func (ci *CommandInterface) CompletionReply(line string) string {
 		}
 		//this means we should pass the subcommands on the root, if available we won't check if path[0] actually
 		//matched the root/interface name in the off chance that someone registered completion under alias or some such
-		for i, sc := range ci.RootCommand.SubCommands {
+		i := 0
+		for _, sc := range ci.RootCommand.SubCommands {
+			if sc.Secret { //don't show secret commands
+				continue
+			}
+
 			if i == 0 {
 				reply += sc.Name
+				i++
 				continue
 			}
 			reply = fmt.Sprintf("%s %s", reply, sc.Name)
@@ -40,6 +46,10 @@ func (ci *CommandInterface) CompletionReply(line string) string {
 			i := 0
 			for _, sc := range ci.RootCommand.SubCommands {
 				if strings.HasPrefix(sc.Name, path[1]) {
+					if sc.Secret { //don't show secret commands
+						continue
+					}
+
 					if i == 0 {
 						reply += sc.Name
 						i++
@@ -60,6 +70,10 @@ func (ci *CommandInterface) CompletionReply(line string) string {
 		i := 0
 		for _, sc := range cmd.SubCommands {
 			if strings.HasPrefix(sc.Name, path[pos+1]) {
+				if sc.Secret { //don't show secret commands
+					continue
+				}
+
 				if i == 0 {
 					reply += sc.Name
 					i++
