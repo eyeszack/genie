@@ -22,7 +22,7 @@ func NoopUsage() {}
 //NoopWriter is used to silence output.
 type NoopWriter struct{}
 
-func (n *NoopWriter) Write(b []byte) (int, error) {
+func (n *NoopWriter) Write([]byte) (int, error) {
 	return 0, nil
 }
 
@@ -208,8 +208,8 @@ var DefaultCommandRunner = func(command *Command, args []string) error { //only 
 }
 
 func askedForHelp(args []string) bool {
-	for _, flag := range args {
-		if flag == "-help" || flag == "--help" {
+	for _, f := range args {
+		if f == "-help" || f == "--help" {
 			return true
 		}
 	}
