@@ -416,6 +416,10 @@ func TestCommand_run(t *testing.T) {
 			return nil
 		}
 		got := subject.run([]string{"-flag", "value"})
+		_, ok := got.(GeeneeError)
+		if !ok {
+			t.Errorf("want geenee.GeeneeError, got %T", got)
+		}
 		if got.Error() != want.Error() {
 			t.Errorf("want %s, got %s", want.Error(), got.Error())
 		}

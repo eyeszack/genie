@@ -9,7 +9,7 @@ import (
 
 type GeeneeError string
 
-func (c GeeneeError) Error() string { return string(c) }
+func (ge GeeneeError) Error() string { return string(ge) }
 
 var (
 	ErrNoOp                = GeeneeError("noop")

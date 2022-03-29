@@ -191,9 +191,10 @@ var DefaultCommandRunner = func(command *Command, args []string) error { //only 
 	if command.Flags != nil {
 		err := command.Flags.Parse(args)
 		//technically we'd not get here if flagset error handling is set to flag.ExitOnError, or flag.PanicOnError,
-		//but for folks who use ContinueOnError we can return the error for custom handling if desired
+		//but for folks who use ContinueOnError we can return the error for custom handling if desired, so we pack it
+		//in a GeeneeError for easier identification
 		if err != nil {
-			return err
+			return GeeneeError(err.Error())
 		}
 	}
 
