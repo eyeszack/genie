@@ -4,11 +4,28 @@ import (
 	"bytes"
 	"errors"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
 )
+
+type Mock struct {
+	Name string
+}
+
+func (m *Mock) Check(command *Command) error {
+	if m.Name == "" {
+		return errors.New("need a name")
+	}
+	return nil
+}
+
+func (m *Mock) Run(command *Command) error {
+	command.Out.Write([]byte(fmt.Sprintf("%s ran", m.Name)))
+	return nil
+}
 
 func Test_NoopUsage(t *testing.T) {
 	t.Run("validate noopusage does nothing", func(t *testing.T) {
@@ -343,6 +360,33 @@ func TestCommand_run(t *testing.T) {
 		}
 
 		err := subject.run([]string{"-flag", "value"})
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
+
+	t.Run("validate command checks and runs - struct with methods", func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		mock := Mock{}
+		want := "mock ran"
+		subject := &Command{
+			Name:  "command",
+			Out:   b,
+			Err:   b,
+			Check: mock.Check,
+			Run:   mock.Run,
+		}
+		subject.Flags = flag.NewFlagSet("command", flag.ContinueOnError)
+		subject.Flags.StringVar(&mock.Name, "name", "", "give me a name")
+
+		err := subject.run([]string{"--name", "mock"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
