@@ -67,7 +67,7 @@ func NewCommand(name string, silenceFlags bool) *Command {
 	} else {
 		c.Flags = flag.NewFlagSet(name, flag.ExitOnError)
 		c.Flags.Usage = func() {
-			fmt.Fprint(c.Err, DefaultCommandUsageFunc(c))
+			_, _ = fmt.Fprint(c.Err, DefaultCommandUsageFunc(c))
 		}
 	}
 
@@ -178,7 +178,7 @@ func (c *Command) run(args []string) error { //only flags/args: -flag value -fla
 var DefaultCommandRunner = func(command *Command, args []string) error { //only flags/args: -flag value -flag2 value2 arg1 arg2
 	if askedForHelp(args) {
 		if command.Out != nil {
-			fmt.Fprint(command.Out, command.ShowUsage())
+			_, _ = fmt.Fprint(command.Out, command.ShowUsage())
 			return nil
 		}
 		return flag.ErrHelp
@@ -190,11 +190,11 @@ var DefaultCommandRunner = func(command *Command, args []string) error { //only 
 
 	if command.Flags != nil {
 		err := command.Flags.Parse(args)
-		//technically we'd not get here if flagset error handling is set to flag.ExitOnError, or flag.PanicOnError,
+		//Technically we'd not get here if flagset error handling is set to flag.ExitOnError, or flag.PanicOnError,
 		//but for folks who use ContinueOnError we can return the error for custom handling if desired, so we pack it
-		//in a GeeneeError for easier identification
+		//in a geenee.Error for easier identification
 		if err != nil {
-			return GeeneeError(err.Error())
+			return Error(err.Error())
 		}
 	}
 

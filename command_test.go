@@ -460,9 +460,9 @@ func TestCommand_run(t *testing.T) {
 			return nil
 		}
 		got := subject.run([]string{"-flag", "value"})
-		_, ok := got.(GeeneeError)
+		_, ok := got.(Error)
 		if !ok {
-			t.Errorf("want geenee.GeeneeError, got %T", got)
+			t.Errorf("want geenee.Error, got %T", got)
 		}
 		if got.Error() != want.Error() {
 			t.Errorf("want %s, got %s", want.Error(), got.Error())
@@ -525,6 +525,32 @@ func Test_DefaultCommandRunner(t *testing.T) {
 		}
 		if string(got) != want {
 			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
+}
+
+func Test_askedForHelp(t *testing.T) {
+	t.Run("validate --help is found", func(t *testing.T) {
+		args := []string{"interface", "command", "subcommand", "-flag", "value", "--help", "-d"}
+		hasFlag := askedForHelp(args)
+		if !hasFlag {
+			t.Errorf("want true, got %t", hasFlag)
+		}
+	})
+
+	t.Run("validate -help is found", func(t *testing.T) {
+		args := []string{"interface", "command", "subcommand", "-flag", "value", "-help", "-d"}
+		hasFlag := askedForHelp(args)
+		if !hasFlag {
+			t.Errorf("want true, got %t", hasFlag)
+		}
+	})
+
+	t.Run("validate help is not found", func(t *testing.T) {
+		args := []string{"interface", "command", "subcommand", "-flag", "value", "-d"}
+		hasFlag := askedForHelp(args)
+		if hasFlag {
+			t.Errorf("want false, got %t", hasFlag)
 		}
 	})
 }

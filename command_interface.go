@@ -7,16 +7,16 @@ import (
 	"strings"
 )
 
-type GeeneeError string
+type Error string
 
-func (ge GeeneeError) Error() string { return string(ge) }
+func (e Error) Error() string { return string(e) }
 
 var (
-	ErrNoOp                = GeeneeError("noop")
-	ErrNoArgs              = GeeneeError("arguments not provided")
-	ErrCommandDepthInvalid = GeeneeError("invalid command depth")
-	ErrCommandNotFound     = GeeneeError("command not found")
-	ErrCommandNotRunnable  = GeeneeError("command not runnable")
+	ErrNoOp                = Error("noop")
+	ErrNoArgs              = Error("arguments not provided")
+	ErrCommandDepthInvalid = Error("invalid command depth")
+	ErrCommandNotFound     = Error("command not found")
+	ErrCommandNotRunnable  = Error("command not runnable")
 )
 
 //CommandInterface is a very simple representation of a Command Line Interface or any interface with commands.
@@ -30,8 +30,8 @@ type CommandInterface struct {
 	MaxCommandDepth int
 }
 
-//NewInterface returns an CommandInterface with sensible defaults.
-func NewInterface(name, version string, silenceFlags bool) *CommandInterface {
+//NewCommandInterface returns a CommandInterface with sensible defaults.
+func NewCommandInterface(name, version string, silenceFlags bool) *CommandInterface {
 	return &CommandInterface{
 		Name:            name,
 		RootCommand:     NewCommand(name, silenceFlags),
@@ -117,9 +117,9 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) { //all: os
 		}
 	}
 
-	//----------------------------------------------------------------------------
-	//no flags were provided so we run things a little differently, less structure
-	//----------------------------------------------------------------------------
+	//----------------------------------------------------------------------------------
+	//no flags were provided, so we run things a little differently, with less structure
+	//----------------------------------------------------------------------------------
 
 	//we may have a command provided
 	command, found, position := ci.searchPathForCommand(args[1:], true)
@@ -135,6 +135,7 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) { //all: os
 	return ci.RootCommand, ci.RootCommand.run(args[1:])
 }
 
+//returns true if flags were found, and the start position of the first flag
 func (ci *CommandInterface) hasFlags(args []string) (int, bool) {
 	for i, flag := range args {
 		if strings.HasPrefix(flag, "-") {

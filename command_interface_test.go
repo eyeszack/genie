@@ -9,21 +9,21 @@ import (
 	"testing"
 )
 
-func TestGeeneeError_Error(t *testing.T) {
+func TestError_Error(t *testing.T) {
 	t.Run("validate error string", func(t *testing.T) {
 		want := "heyo error"
-		got := GeeneeError("heyo error")
+		got := Error("heyo error")
 		if want != got.Error() {
 			t.Errorf("want %s, got %s", want, got)
 		}
 	})
 }
 
-func Test_NewInterface(t *testing.T) {
+func Test_NewCommandInterface(t *testing.T) {
 	t.Run("validate new", func(t *testing.T) {
 		wantName := "tester"
 		wantVersion := "0.0.0"
-		got := NewInterface(wantName, wantVersion, false)
+		got := NewCommandInterface(wantName, wantVersion, false)
 		if got == nil {
 			t.Fatal("want interface, got nil")
 		}
@@ -66,7 +66,7 @@ func Test_NewInterface(t *testing.T) {
 func TestCommandInterface_SetWriters(t *testing.T) {
 	t.Run("validate new", func(t *testing.T) {
 		b := bytes.NewBufferString("")
-		got := NewInterface("tester", "0.0.0", false)
+		got := NewCommandInterface("tester", "0.0.0", false)
 		got.RootCommand.SubCommands = []*Command{
 			NewCommand("heyo", false),
 		}
@@ -1208,6 +1208,32 @@ func TestCommandInterface_hasFlags(t *testing.T) {
 		}
 		if got != want {
 			t.Errorf("want %d, got %d", want, got)
+		}
+	})
+}
+
+func Test_askedForVersion(t *testing.T) {
+	t.Run("validate --version is found", func(t *testing.T) {
+		args := []string{"interface", "command", "subcommand", "-flag", "value", "--version", "-d"}
+		hasFlag := askedForVersion(args)
+		if !hasFlag {
+			t.Errorf("want true, got %t", hasFlag)
+		}
+	})
+
+	t.Run("validate -version is found", func(t *testing.T) {
+		args := []string{"interface", "command", "subcommand", "-flag", "value", "-version", "-d"}
+		hasFlag := askedForVersion(args)
+		if !hasFlag {
+			t.Errorf("want true, got %t", hasFlag)
+		}
+	})
+
+	t.Run("validate version is not found", func(t *testing.T) {
+		args := []string{"interface", "command", "subcommand", "-flag", "value", "-d"}
+		hasFlag := askedForVersion(args)
+		if hasFlag {
+			t.Errorf("want false, got %t", hasFlag)
 		}
 	})
 }
