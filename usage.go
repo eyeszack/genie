@@ -57,11 +57,11 @@ var DefaultCommandUsageFunc = func(command *Command) string {
 					builder.WriteString("\nCOMMANDS:\n")
 					wroteCommandHeader = true
 				}
-				tabWriter.Write([]byte(fmt.Sprintf("%s\t%s\n", subcommand.Name, subcommand.Description)))
+				_, _ = tabWriter.Write([]byte(fmt.Sprintf("%s\t%s\n", subcommand.Name, subcommand.Description)))
 			}
 		}
 	}
-	tabWriter.Flush()
+	_ = tabWriter.Flush()
 	if wroteCommandHeader {
 		helpMsg := "\nUse \"--help\" with any command for more information.\n"
 		if command.path != "" {
@@ -150,10 +150,10 @@ func mergeFlagsUsage(command *Command) string {
 	}
 
 	for _, s := range sorted {
-		tabWriter.Write([]byte(s))
+		_, _ = tabWriter.Write([]byte(s))
 	}
 
-	tabWriter.Flush()
+	_ = tabWriter.Flush()
 	return builder.String()
 }
 
@@ -218,9 +218,9 @@ func flagsUsage(command *Command) string {
 	})
 
 	for _, s := range usages {
-		tabWriter.Write([]byte(s))
+		_, _ = tabWriter.Write([]byte(s))
 	}
 
-	tabWriter.Flush()
+	_ = tabWriter.Flush()
 	return builder.String()
 }

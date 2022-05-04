@@ -100,7 +100,7 @@ func (ci *CommandInterface) Execute(args []string) (*Command, error) { //all: os
 		case 1:
 			if askedForVersion(args) {
 				if ci.Out != nil {
-					fmt.Fprintln(ci.Out, ci.Version)
+					_, _ = fmt.Fprintln(ci.Out, ci.Version)
 				}
 				return ci.RootCommand, nil
 			}

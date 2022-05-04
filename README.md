@@ -1,5 +1,5 @@
 # geenee
-geenee is a simple, flexible, zero dependency module for building CLIs with Go.
+Geenee is a simple, flexible, module for building CLIs in Go using only the standard library.
 
 ## Getting Started
 
@@ -32,7 +32,10 @@ func newHeyoCommand() *geenee.Command {
 		return nil
 	}
 	cmd.Run = func(command *geenee.Command) error {
-		fmt.Fprintf(command.Out, "I ran the heyo with [%s]\n", test)
+		_, err := fmt.Fprintf(command.Out, "I ran the heyo with [%s]\n", test)
+		if err != nil {
+			return err
+        }
 		return nil
 	}
 
@@ -43,3 +46,4 @@ func newHeyoCommand() *geenee.Command {
 	return cmd
 }
 ```
+
