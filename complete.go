@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+//CompletionReply provides very basic completion support for CLIs using geenee. Currently, only subcommand completion is
+//supported. Flag and argument completion is not supported.
 func (ci *CommandInterface) CompletionReply(line string) string {
 	reply := ""
 	if ci.RootCommand == nil || len(ci.RootCommand.SubCommands) == 0 {
@@ -87,6 +89,9 @@ func (ci *CommandInterface) CompletionReply(line string) string {
 	return reply
 }
 
+//GenerateBashCompletion will return a bash script that can be sourced to provide a hook into your completion logic.
+//If you use this with your CLI you'll need to reply to the compreply with the appropriate values to show the user.
+//You can use the simple completion support provided by the CompletionReply function or roll your own.
 func GenerateBashCompletion(cli *CommandInterface) string {
 	complete := `#!/bin/bash
 function _%s () {
