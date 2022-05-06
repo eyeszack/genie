@@ -57,8 +57,13 @@ func (l *Lamp) SetWriters(o, e io.Writer) {
 	}
 }
 
-//Execute executes the Lamp with the provided arguments, returns the command executed if found.
-func (l *Lamp) Execute(args []string) (*Command, error) { //all: os.Args() = lamp command command -flag value -flag2 value2 arg1 arg2
+//Execute will execute the Lamp with os.Args as the provided arguments, returns the command executed if found.
+func (l *Lamp) Execute() (*Command, error) {
+	return l.ExecuteWith(os.Args)
+}
+
+//ExecuteWith executes the Lamp with the provided arguments, returns the command executed if found.
+func (l *Lamp) ExecuteWith(args []string) (*Command, error) { //all: os.Args() = lamp command command -flag value -flag2 value2 arg1 arg2
 	//if we have no root command there is nothing we can do
 	if l.RootCommand == nil {
 		return nil, ErrNoOp

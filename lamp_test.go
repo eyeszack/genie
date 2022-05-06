@@ -163,7 +163,44 @@ func TestLamp_SetWriters(t *testing.T) {
 	})
 }
 
-func TestLamp_Exec(t *testing.T) {
+func TestLamp_Execute(t *testing.T) {
+	t.Run("validate that os.Args are provided", func(t *testing.T) {
+		oldArgs := os.Args
+		defer func() { os.Args = oldArgs }()
+		os.Args = []string{"test", "-version"}
+		b := bytes.NewBufferString("")
+		want := "test 0.0.0\n"
+		subject := &Lamp{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				Out:  b,
+				Err:  b,
+				Run: func(command *Command) error {
+					command.Out.Write([]byte("root command ran"))
+					return nil
+				},
+			},
+			Out:             b,
+			Err:             b,
+			Version:         "test 0.0.0",
+			MaxCommandDepth: 3,
+		}
+		_, err := subject.Execute()
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
+}
+
+func TestLamp_ExecuteWith(t *testing.T) {
 	t.Run("validate lamp returns version if version flag present, and doesn't run root command", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := "test 0.0.0\n"
@@ -183,7 +220,7 @@ func TestLamp_Exec(t *testing.T) {
 			Version:         "test 0.0.0",
 			MaxCommandDepth: 3,
 		}
-		_, err := subject.Execute([]string{"test", "-version"})
+		_, err := subject.ExecuteWith([]string{"test", "-version"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -214,7 +251,7 @@ func TestLamp_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		_, err := subject.Execute([]string{"test"})
+		_, err := subject.ExecuteWith([]string{"test"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -245,7 +282,7 @@ func TestLamp_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		_, err := subject.Execute([]string{"test", "notaflag", "notasubcommand"})
+		_, err := subject.ExecuteWith([]string{"test", "notaflag", "notasubcommand"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -276,7 +313,7 @@ func TestLamp_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		_, err := subject.Execute([]string{"test"})
+		_, err := subject.ExecuteWith([]string{"test"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -307,7 +344,7 @@ func TestLamp_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		_, err := subject.Execute([]string{"test", "-flag", "value"})
+		_, err := subject.ExecuteWith([]string{"test", "-flag", "value"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -349,7 +386,7 @@ func TestLamp_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		_, err := subject.Execute([]string{"test", "command"})
+		_, err := subject.ExecuteWith([]string{"test", "command"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -391,7 +428,7 @@ func TestLamp_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		_, err := subject.Execute([]string{"test", "command", "-flag", "value"})
+		_, err := subject.ExecuteWith([]string{"test", "command", "-flag", "value"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -462,7 +499,7 @@ func TestLamp_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		_, err := subject.Execute([]string{"test", "command", "subcommand", "immaarg", "metoo"})
+		_, err := subject.ExecuteWith([]string{"test", "command", "subcommand", "immaarg", "metoo"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -525,7 +562,7 @@ func TestLamp_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		_, err := subject.Execute([]string{"test", "command", "subcommand", "-flag", "value"})
+		_, err := subject.ExecuteWith([]string{"test", "command", "subcommand", "-flag", "value"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -588,7 +625,7 @@ func TestLamp_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		_, err := subject.Execute([]string{"/home/usr/bin/test", "command", "subcommand", "-flag", "value"})
+		_, err := subject.ExecuteWith([]string{"/home/usr/bin/test", "command", "subcommand", "-flag", "value"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -619,7 +656,7 @@ func TestLamp_Exec(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		_, err := subject.Execute([]string{"notvalid"})
+		_, err := subject.ExecuteWith([]string{"notvalid"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -632,255 +669,7 @@ func TestLamp_Exec(t *testing.T) {
 			t.Errorf("want: %s, got %s", want, string(got))
 		}
 	})
-}
 
-func TestLamp_Exec_error(t *testing.T) {
-	t.Run("validate lamp returns error if no args provided", func(t *testing.T) {
-		want := ErrNoArgs
-		subject := &Lamp{
-			Name: "test",
-			RootCommand: &Command{
-				Name: "test",
-			},
-			MaxCommandDepth: 3,
-		}
-		_, got := subject.Execute(nil)
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
-		}
-	})
-
-	t.Run("validate lamp returns error if noop state", func(t *testing.T) {
-		want := ErrNoOp
-		subject := &Lamp{
-			Name:            "test",
-			MaxCommandDepth: 3,
-		}
-		_, got := subject.Execute([]string{"test"})
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
-		}
-	})
-
-	t.Run("validate lamp returns error if invalid command called (noop) - no flag", func(t *testing.T) {
-		want := ErrNoOp
-		subject := &Lamp{
-			Name:            "test",
-			MaxCommandDepth: 3,
-		}
-		_, got := subject.Execute([]string{"test", "nope"})
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
-		}
-	})
-
-	t.Run("validate lamp returns error if invalid command called and root not runnable - no flag", func(t *testing.T) {
-		want := ErrCommandNotRunnable
-		subject := &Lamp{
-			Name: "test",
-			RootCommand: &Command{
-				Name: "test",
-				SubCommands: []*Command{
-					{
-						Name: "command",
-						Run: func(command *Command) error {
-							t.Error("unexpected command run")
-							return nil
-						},
-					},
-				},
-			},
-			MaxCommandDepth: 3,
-		}
-		_, got := subject.Execute([]string{"test", "nope"})
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
-		}
-	})
-
-	t.Run("validate lamp returns error if invalid command called and found command not runnable - no flag", func(t *testing.T) {
-		want := ErrCommandNotRunnable
-		subject := &Lamp{
-			Name: "test",
-			RootCommand: &Command{
-				Name: "test",
-				SubCommands: []*Command{
-					{
-						Name: "command",
-					},
-				},
-			},
-			MaxCommandDepth: 3,
-		}
-		_, got := subject.Execute([]string{"test", "command", "nope"})
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
-		}
-	})
-
-	t.Run("validate lamp returns error if invalid command called", func(t *testing.T) {
-		want := ErrCommandNotFound
-		subject := &Lamp{
-			Name: "test",
-			RootCommand: &Command{
-				Name: "test",
-				SubCommands: []*Command{
-					{
-						Name: "command",
-						Run: func(command *Command) error {
-							t.Error("unexpected command run")
-							return nil
-						},
-					},
-				},
-			},
-			MaxCommandDepth: 3,
-		}
-		_, got := subject.Execute([]string{"test", "nope", "-flag", "value"})
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
-		}
-	})
-
-	t.Run("validate lamp returns error if invalid subcommand called", func(t *testing.T) {
-		want := ErrCommandNotFound
-		subject := &Lamp{
-			Name: "test",
-			RootCommand: &Command{
-				Name: "test",
-				SubCommands: []*Command{
-					{
-						Name: "command",
-						Run: func(command *Command) error {
-							t.Error("unexpected command run")
-							return nil
-						},
-						SubCommands: []*Command{
-							{
-								Name: "subcommand",
-								Run: func(command *Command) error {
-									t.Error("unexpected subcommand run")
-									return nil
-								},
-							},
-						},
-					},
-				},
-			},
-			MaxCommandDepth: 3,
-		}
-		_, got := subject.Execute([]string{"test", "command", "nope", "-flag", "value"})
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
-		}
-	})
-
-	t.Run("validate lamp returns error if valid subcommand called on an invalid command", func(t *testing.T) {
-		want := ErrCommandNotFound
-		subject := &Lamp{
-			Name: "test",
-			RootCommand: &Command{
-				Name: "test",
-				SubCommands: []*Command{
-					{
-						Name: "command",
-						Run: func(command *Command) error {
-							t.Error("unexpected command run")
-							return nil
-						},
-						SubCommands: []*Command{
-							{
-								Name: "subcommand",
-								Run: func(command *Command) error {
-									t.Error("unexpected subcommand run")
-									return nil
-								},
-							},
-						},
-					},
-				},
-			},
-			MaxCommandDepth: 3,
-		}
-		_, got := subject.Execute([]string{"test", "nope", "subcommand", "-flag", "value"})
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
-		}
-	})
-
-	t.Run("validate lamp returns error if command depth invalid - flags", func(t *testing.T) {
-		want := ErrCommandDepthInvalid
-		subject := &Lamp{
-			Name: "test",
-			RootCommand: &Command{
-				Name: "test",
-				SubCommands: []*Command{
-					{
-						Name: "command",
-						Run: func(command *Command) error {
-							t.Error("unexpected command run")
-							return nil
-						},
-						SubCommands: []*Command{
-							{
-								Name: "subcommand",
-								Run: func(command *Command) error {
-									t.Error("unexpected subcommand run")
-									return nil
-								},
-							},
-						},
-					},
-				},
-			},
-			MaxCommandDepth: 3,
-		}
-		_, got := subject.Execute([]string{"test", "command", "subcommand", "subsubcommand", "-flag", "value"})
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
-		}
-	})
-
-	t.Run("validate lamp returns error if command depth invalid - no flags", func(t *testing.T) {
-		want := ErrCommandDepthInvalid
-		subject := &Lamp{
-			Name: "test",
-			RootCommand: &Command{
-				Name: "test",
-				SubCommands: []*Command{
-					{
-						Name: "command",
-						Run: func(command *Command) error {
-							t.Error("unexpected command run")
-							return nil
-						},
-						SubCommands: []*Command{
-							{
-								Name: "subcommand",
-								Run: func(command *Command) error {
-									t.Error("unexpected subcommand run")
-									return nil
-								},
-								SubCommands: []*Command{
-									{
-										Name: "subsubcommand",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			MaxCommandDepth: 3,
-		}
-		_, got := subject.Execute([]string{"test", "command", "subcommand", "subsubcommand", "arg1", "arg2"})
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
-		}
-	})
-}
-
-func TestLamp_Execute(t *testing.T) {
 	t.Run("validate command runs - no flags", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := "command ran"
@@ -911,7 +700,7 @@ func TestLamp_Execute(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		gotCommand, err := subject.Execute([]string{"test", "command"})
+		gotCommand, err := subject.ExecuteWith([]string{"test", "command"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -957,7 +746,7 @@ func TestLamp_Execute(t *testing.T) {
 			Err:             b,
 			MaxCommandDepth: 3,
 		}
-		gotCommand, err := subject.Execute([]string{"test", "command", "-flag", "value"})
+		gotCommand, err := subject.ExecuteWith([]string{"test", "command", "-flag", "value"})
 		if err != nil {
 			t.Errorf("[err] want nil, got %s", err)
 		}
@@ -970,6 +759,252 @@ func TestLamp_Execute(t *testing.T) {
 		}
 		if !reflect.DeepEqual(gotCommand, wantCommand) {
 			t.Errorf("want %v, got %v", wantCommand, gotCommand)
+		}
+	})
+}
+
+func TestLamp_ExecuteWith_error(t *testing.T) {
+	t.Run("validate lamp returns error if no args provided", func(t *testing.T) {
+		want := ErrNoArgs
+		subject := &Lamp{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+			},
+			MaxCommandDepth: 3,
+		}
+		_, got := subject.ExecuteWith(nil)
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate lamp returns error if noop state", func(t *testing.T) {
+		want := ErrNoOp
+		subject := &Lamp{
+			Name:            "test",
+			MaxCommandDepth: 3,
+		}
+		_, got := subject.ExecuteWith([]string{"test"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate lamp returns error if invalid command called (noop) - no flag", func(t *testing.T) {
+		want := ErrNoOp
+		subject := &Lamp{
+			Name:            "test",
+			MaxCommandDepth: 3,
+		}
+		_, got := subject.ExecuteWith([]string{"test", "nope"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate lamp returns error if invalid command called and root not runnable - no flag", func(t *testing.T) {
+		want := ErrCommandNotRunnable
+		subject := &Lamp{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Run: func(command *Command) error {
+							t.Error("unexpected command run")
+							return nil
+						},
+					},
+				},
+			},
+			MaxCommandDepth: 3,
+		}
+		_, got := subject.ExecuteWith([]string{"test", "nope"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate lamp returns error if invalid command called and found command not runnable - no flag", func(t *testing.T) {
+		want := ErrCommandNotRunnable
+		subject := &Lamp{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+					},
+				},
+			},
+			MaxCommandDepth: 3,
+		}
+		_, got := subject.ExecuteWith([]string{"test", "command", "nope"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate lamp returns error if invalid command called", func(t *testing.T) {
+		want := ErrCommandNotFound
+		subject := &Lamp{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Run: func(command *Command) error {
+							t.Error("unexpected command run")
+							return nil
+						},
+					},
+				},
+			},
+			MaxCommandDepth: 3,
+		}
+		_, got := subject.ExecuteWith([]string{"test", "nope", "-flag", "value"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate lamp returns error if invalid subcommand called", func(t *testing.T) {
+		want := ErrCommandNotFound
+		subject := &Lamp{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Run: func(command *Command) error {
+							t.Error("unexpected command run")
+							return nil
+						},
+						SubCommands: []*Command{
+							{
+								Name: "subcommand",
+								Run: func(command *Command) error {
+									t.Error("unexpected subcommand run")
+									return nil
+								},
+							},
+						},
+					},
+				},
+			},
+			MaxCommandDepth: 3,
+		}
+		_, got := subject.ExecuteWith([]string{"test", "command", "nope", "-flag", "value"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate lamp returns error if valid subcommand called on an invalid command", func(t *testing.T) {
+		want := ErrCommandNotFound
+		subject := &Lamp{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Run: func(command *Command) error {
+							t.Error("unexpected command run")
+							return nil
+						},
+						SubCommands: []*Command{
+							{
+								Name: "subcommand",
+								Run: func(command *Command) error {
+									t.Error("unexpected subcommand run")
+									return nil
+								},
+							},
+						},
+					},
+				},
+			},
+			MaxCommandDepth: 3,
+		}
+		_, got := subject.ExecuteWith([]string{"test", "nope", "subcommand", "-flag", "value"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate lamp returns error if command depth invalid - flags", func(t *testing.T) {
+		want := ErrCommandDepthInvalid
+		subject := &Lamp{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Run: func(command *Command) error {
+							t.Error("unexpected command run")
+							return nil
+						},
+						SubCommands: []*Command{
+							{
+								Name: "subcommand",
+								Run: func(command *Command) error {
+									t.Error("unexpected subcommand run")
+									return nil
+								},
+							},
+						},
+					},
+				},
+			},
+			MaxCommandDepth: 3,
+		}
+		_, got := subject.ExecuteWith([]string{"test", "command", "subcommand", "subsubcommand", "-flag", "value"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate lamp returns error if command depth invalid - no flags", func(t *testing.T) {
+		want := ErrCommandDepthInvalid
+		subject := &Lamp{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				SubCommands: []*Command{
+					{
+						Name: "command",
+						Run: func(command *Command) error {
+							t.Error("unexpected command run")
+							return nil
+						},
+						SubCommands: []*Command{
+							{
+								Name: "subcommand",
+								Run: func(command *Command) error {
+									t.Error("unexpected subcommand run")
+									return nil
+								},
+								SubCommands: []*Command{
+									{
+										Name: "subsubcommand",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			MaxCommandDepth: 3,
+		}
+		_, got := subject.ExecuteWith([]string{"test", "command", "subcommand", "subsubcommand", "arg1", "arg2"})
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
 		}
 	})
 }
