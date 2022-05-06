@@ -14,28 +14,34 @@ import (
 )
 
 func main() {
-	cmd := newHeyoCommand()
-	err := genie.DefaultCommandRunner(cmd, os.Args[1:])
-	if err != nil {
-		fmt.Printf(cmd.ShowUsage())
-		os.Exit(1)
+	lamp := genie.NewLamp("magic", "1.0.0", true)
+	lamp.RootCommand.SubCommands = []*genie.Command{
+		newWishCommand(),
+	}
+	
+	if cmd, err := lamp.Execute(); err != nil {
+		//you can show cmd usage on error, or do something else
+		if cmd != nil {
+			_, _ = fmt.Fprint(lamp.Err, cmd.ShowUsage())
+			os.Exit(1)
+		}
 	}
 }
 
-func newHeyoCommand() *genie.Command {
+func newWishCommand() *genie.Command {
 	test := ""
-	cmd := genie.NewCommand("heyo", true)
-	cmd.Description = "A simple heyo."
+	cmd := genie.NewCommand("wish", true)
+	cmd.Description = "A simple wish."
 	cmd.Check = func(command *genie.Command) error {
 		//you can validate flag/arg values here if desired,
 		//or anything else you want to check on before running command
 		return nil
 	}
 	cmd.Run = func(command *genie.Command) error {
-		_, err := fmt.Fprintf(command.Out, "I ran the heyo with [%s]\n", test)
+		_, err := fmt.Fprintf(command.Out, "I ran the wish with [%s]\n", test)
 		if err != nil {
 			return err
-        }
+		}
 		return nil
 	}
 
