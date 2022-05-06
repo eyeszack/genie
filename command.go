@@ -1,4 +1,4 @@
-package geenee
+package genie
 
 import (
 	"flag"

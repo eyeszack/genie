@@ -1,4 +1,4 @@
-package geenee
+package genie
 
 import (
 	"fmt"
@@ -7,9 +7,9 @@ import (
 
 //CompletionReply provides very basic completion support for CLIs using geenee. Currently, only subcommand completion is
 //supported. Flag and argument completion is not supported.
-func (ci *CommandInterface) CompletionReply(line string) string {
+func (l *Lamp) CompletionReply(line string) string {
 	reply := ""
-	if ci.RootCommand == nil || len(ci.RootCommand.SubCommands) == 0 {
+	if l.RootCommand == nil || len(l.RootCommand.SubCommands) == 0 {
 		return reply
 	}
 
@@ -21,7 +21,7 @@ func (ci *CommandInterface) CompletionReply(line string) string {
 		//this means we should pass the subcommands on the root, if available we won't check if path[0] actually
 		//matched the root/interface name in the off chance that someone registered completion under alias or some such
 		i := 0
-		for _, sc := range ci.RootCommand.SubCommands {
+		for _, sc := range l.RootCommand.SubCommands {
 			if sc.Secret { //don't show secret commands
 				continue
 			}
@@ -41,12 +41,12 @@ func (ci *CommandInterface) CompletionReply(line string) string {
 		path = append(path, "")
 	}
 
-	cmd, found, pos := ci.searchPathForCommand(path[1:], true)
+	cmd, found, pos := l.searchPathForCommand(path[1:], true)
 	if !found {
 		//let's double check in case the completion request is on root
 		if len(path) == 2 {
 			i := 0
-			for _, sc := range ci.RootCommand.SubCommands {
+			for _, sc := range l.RootCommand.SubCommands {
 				if strings.HasPrefix(sc.Name, path[1]) {
 					if sc.Secret { //don't show secret commands
 						continue
@@ -92,7 +92,7 @@ func (ci *CommandInterface) CompletionReply(line string) string {
 //GenerateBashCompletion will return a bash script that can be sourced to provide a hook into your completion logic.
 //If you use this with your CLI you'll need to reply to the compreply with the appropriate values to show the user.
 //You can use the simple completion support provided by the CompletionReply function or roll your own.
-func GenerateBashCompletion(cli *CommandInterface) string {
+func GenerateBashCompletion(cli *Lamp) string {
 	complete := `#!/bin/bash
 function _%s () {
   COMPREPLY=($(%s compreply "$COMP_LINE"));
