@@ -356,3 +356,98 @@ command
 		}
 	})
 }
+
+func Test_DefaultFlagsUsageMarkedFunc(t *testing.T) {
+	t.Run("validate default flag usage", func(t *testing.T) {
+		want := `::HEADER::FLAGS:::HEADER-END::
+::FLAG::--help::FLAG-END::                  display help for command
+::FLAG::--testing::FLAG-END::     string    this is a testing flag
+::FLAG::--version::FLAG-END::               display version information
+::FLAG::-t::FLAG-END::            string    this is a testing flag
+`
+		subject := &Command{Name: "command", Flags: flag.NewFlagSet("command", flag.ExitOnError)}
+		subject.Description = "The test command is for testing."
+		subject.Flags.String("testing", "", "this is a testing flag")
+		subject.Flags.String("t", "", "this is a testing flag")
+		subject.Flags.String("hideme", "", "i should not show up")
+		subject.Flags.String("m", "", "i should not show up")
+		subject.SecretFlag("hideme")
+		subject.SecretFlag("m")
+		subject.root = true
+		got := DefaultFlagsUsageMarkedFunc(subject)
+		if got != want {
+			t.Errorf("want: %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate default flag usage - merged", func(t *testing.T) {
+		want := `::HEADER::FLAGS:::HEADER-END::
+::FLAG::--help::FLAG-END::                     display help for command
+::FLAG::--testing -t::FLAG-END::     string    this is a testing flag
+::FLAG::--version::FLAG-END::                  display version information
+`
+		subject := &Command{Name: "command", Flags: flag.NewFlagSet("command", flag.ExitOnError)}
+		subject.Description = "The test command is for testing."
+		subject.Flags.String("testing", "", "this is a testing flag")
+		subject.Flags.String("t", "", "this is a testing flag")
+		subject.Flags.String("hideme", "", "i should not show up")
+		subject.Flags.String("m", "", "i should not show up")
+		subject.SecretFlag("hideme")
+		subject.SecretFlag("m")
+		subject.root = true
+		subject.MergeFlagUsage = true
+		got := DefaultFlagsUsageMarkedFunc(subject)
+		if got != want {
+			t.Errorf("want: %s, got %s", want, got)
+		}
+	})
+}
+
+func Test_mergeFlagsUsageMarked(t *testing.T) {
+	t.Run("validate flag usage", func(t *testing.T) {
+		want := `
+::HEADER::FLAGS:::HEADER-END::
+::FLAG::--help::FLAG-END::                     display help for command
+::FLAG::--testing -t::FLAG-END::     string    this is a testing flag
+::FLAG::--version::FLAG-END::                  display version information
+`
+		subject := &Command{Name: "command", Flags: flag.NewFlagSet("command", flag.ExitOnError)}
+		subject.Description = "The test command is for testing."
+		subject.Flags.String("testing", "", "this is a testing flag")
+		subject.Flags.String("t", "", "this is a testing flag")
+		subject.Flags.String("hideme", "", "i should not show up")
+		subject.Flags.String("m", "", "i should not show up")
+		subject.SecretFlag("hideme")
+		subject.SecretFlag("m")
+		subject.root = true
+		got := mergeFlagsUsageMarked(subject)
+		if got != want {
+			t.Errorf("want: %s, got %s", want, got)
+		}
+	})
+}
+
+func Test_flagsUsageMarked(t *testing.T) {
+	t.Run("validate flag usage", func(t *testing.T) {
+		want := `
+::HEADER::FLAGS:::HEADER-END::
+::FLAG::--help::FLAG-END::                  display help for command
+::FLAG::--testing::FLAG-END::     string    this is a testing flag
+::FLAG::--version::FLAG-END::               display version information
+::FLAG::-t::FLAG-END::            string    this is a testing flag
+`
+		subject := &Command{Name: "command", Flags: flag.NewFlagSet("command", flag.ExitOnError)}
+		subject.Description = "The test command is for testing."
+		subject.Flags.String("testing", "", "this is a testing flag")
+		subject.Flags.String("t", "", "this is a testing flag")
+		subject.Flags.String("hideme", "", "i should not show up")
+		subject.Flags.String("m", "", "i should not show up")
+		subject.SecretFlag("hideme")
+		subject.SecretFlag("m")
+		subject.root = true
+		got := flagsUsageMarked(subject)
+		if got != want {
+			t.Errorf("want: %s, got %s", want, got)
+		}
+	})
+}

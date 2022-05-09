@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 )
 
 //CheckFunc is used to check stuff before run is called, if error is returned run will not be called.
@@ -185,18 +184,6 @@ var DefaultCommandRunner = func(command *Command, args []string) error { //only 
 		return flag.ErrHelp
 	}
 
-	if askedForFlagHelp(args) {
-		if command.Out != nil {
-			if command.MergeFlagUsage {
-				_, _ = fmt.Fprint(command.Out, strings.TrimPrefix(mergeFlagsUsage(command), "\nFLAGS:\n"))
-				return nil
-			}
-			_, _ = fmt.Fprint(command.Out, strings.TrimPrefix(flagsUsage(command), "\nFLAGS:\n"))
-			return nil
-		}
-		return flag.ErrHelp
-	}
-
 	if command.Run == nil {
 		return ErrCommandNotRunnable
 	}
@@ -224,16 +211,6 @@ var DefaultCommandRunner = func(command *Command, args []string) error { //only 
 func askedForHelp(args []string) bool {
 	for _, f := range args {
 		if f == "-help" || f == "--help" {
-			return true
-		}
-	}
-
-	return false
-}
-
-func askedForFlagHelp(args []string) bool {
-	for _, f := range args {
-		if f == "-help-flags" || f == "--help-flags" {
 			return true
 		}
 	}

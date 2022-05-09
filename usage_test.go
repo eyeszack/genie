@@ -109,6 +109,9 @@ FLAGS:
 -v                        this is another testing flag (default false)
 -z            testFlag    this is a custom flag
 
+ARGUMENTS:
+One or more test strings can be supplied.
+
 COMMANDS:
 subcommand    The test command subcommand.
 
@@ -120,7 +123,8 @@ Use "command <command> --help" for more information.
 			Description: "The test command is for testing.",
 			ExtraInfo: `HEADING:
 This can be used to provide all kinds of extra usage info.`,
-			Flags: flag.NewFlagSet("command", flag.ExitOnError),
+			ArgInfo: "One or more test strings can be supplied.",
+			Flags:   flag.NewFlagSet("command", flag.ExitOnError),
 			SubCommands: []*Command{
 				{
 					Name:        "subcommand",
@@ -258,7 +262,7 @@ FLAGS:
 		}
 	})
 
-	t.Run("validate default usage - flags error", func(t *testing.T) {
+	t.Run("validate default usage - flags error non-silenced", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := `The test command is for testing.
 
@@ -269,14 +273,10 @@ command --slice 2,3 <test_string>...
 FLAGS:
 --help                  display help for command
 --testing     string    this is a testing flag
-
-ARGUMENTS:
-One or more test strings can be supplied.
 `
 		subject := NewCommand("command", false)
 		subject.RunSyntax = "--testing heyo\n{{path}} --slice 2,3 <test_string>..."
 		subject.Description = "The test command is for testing."
-		subject.ArgInfo = "One or more test strings can be supplied."
 		subject.Err = b
 		subject.Flags.String("testing", "", "this is a testing flag")
 		subject.Flags.String("hideme", "", "i should not show up")
@@ -361,6 +361,52 @@ FLAGS:
 	})
 }
 
+func Test_DefaultFlagsUsageFunc(t *testing.T) {
+	t.Run("validate default flag usage", func(t *testing.T) {
+		want := `FLAGS:
+--help                  display help for command
+--testing     string    this is a testing flag
+--version               display version information
+-t            string    this is a testing flag
+`
+		subject := &Command{Name: "command", Flags: flag.NewFlagSet("command", flag.ExitOnError)}
+		subject.Description = "The test command is for testing."
+		subject.Flags.String("testing", "", "this is a testing flag")
+		subject.Flags.String("t", "", "this is a testing flag")
+		subject.Flags.String("hideme", "", "i should not show up")
+		subject.Flags.String("m", "", "i should not show up")
+		subject.SecretFlag("hideme")
+		subject.SecretFlag("m")
+		subject.root = true
+		got := DefaultFlagsUsageFunc(subject)
+		if got != want {
+			t.Errorf("want: %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate default flag usage - merged", func(t *testing.T) {
+		want := `FLAGS:
+--help                     display help for command
+--testing -t     string    this is a testing flag
+--version                  display version information
+`
+		subject := &Command{Name: "command", Flags: flag.NewFlagSet("command", flag.ExitOnError)}
+		subject.Description = "The test command is for testing."
+		subject.Flags.String("testing", "", "this is a testing flag")
+		subject.Flags.String("t", "", "this is a testing flag")
+		subject.Flags.String("hideme", "", "i should not show up")
+		subject.Flags.String("m", "", "i should not show up")
+		subject.SecretFlag("hideme")
+		subject.SecretFlag("m")
+		subject.root = true
+		subject.MergeFlagUsage = true
+		got := DefaultFlagsUsageFunc(subject)
+		if got != want {
+			t.Errorf("want: %s, got %s", want, got)
+		}
+	})
+}
+
 func Test_mergeFlagsUsage(t *testing.T) {
 	t.Run("validate flag usage", func(t *testing.T) {
 		want := `
@@ -369,7 +415,7 @@ FLAGS:
 --testing -t     string    this is a testing flag
 --version                  display version information
 `
-		subject := NewCommand("command", false)
+		subject := &Command{Name: "command", Flags: flag.NewFlagSet("command", flag.ExitOnError)}
 		subject.Description = "The test command is for testing."
 		subject.Flags.String("testing", "", "this is a testing flag")
 		subject.Flags.String("t", "", "this is a testing flag")
@@ -394,7 +440,7 @@ FLAGS:
 --version               display version information
 -t            string    this is a testing flag
 `
-		subject := NewCommand("command", false)
+		subject := &Command{Name: "command", Flags: flag.NewFlagSet("command", flag.ExitOnError)}
 		subject.Description = "The test command is for testing."
 		subject.Flags.String("testing", "", "this is a testing flag")
 		subject.Flags.String("t", "", "this is a testing flag")

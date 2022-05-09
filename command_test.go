@@ -495,101 +495,6 @@ FLAGS:
 			t.Errorf("want: %s, got %s", want, string(got))
 		}
 	})
-
-	t.Run("validate command returns flag help when asked for", func(t *testing.T) {
-		b := bytes.NewBufferString("")
-		want := `--help               display help for command
---test     string    testing flags
--t         string    testing flags
-`
-		subject := &Command{
-			Name:  "command",
-			Out:   b,
-			Err:   b,
-			Flags: flag.NewFlagSet("command", flag.ExitOnError),
-			Check: func(command *Command) error {
-				command.Out.Write([]byte("check ran"))
-				return nil
-			},
-			Run: func(command *Command) error {
-				command.Out.Write([]byte("command ran"))
-				return nil
-			},
-		}
-
-		subject.Flags.String("test", "", "testing flags")
-		subject.Flags.String("t", "", "testing flags")
-
-		err := subject.run([]string{"--help-flags"})
-		if err != nil {
-			t.Errorf("wanted nil, got %s", err)
-		}
-		got, err := ioutil.ReadAll(b)
-		if err != nil {
-			t.Errorf("[err] want nil, got %s", err)
-		}
-		if string(got) != want {
-			t.Errorf("want: %s, got %s", want, string(got))
-		}
-	})
-
-	t.Run("validate command returns flag help when asked for - merged", func(t *testing.T) {
-		b := bytes.NewBufferString("")
-		want := `--help                  display help for command
---test -t     string    testing flags
-`
-		subject := &Command{
-			Name:  "command",
-			Out:   b,
-			Err:   b,
-			Flags: flag.NewFlagSet("command", flag.ExitOnError),
-			Check: func(command *Command) error {
-				command.Out.Write([]byte("check ran"))
-				return nil
-			},
-			Run: func(command *Command) error {
-				command.Out.Write([]byte("command ran"))
-				return nil
-			},
-			MergeFlagUsage: true,
-		}
-
-		subject.Flags.String("test", "", "testing flags")
-		subject.Flags.String("t", "", "testing flags")
-
-		err := subject.run([]string{"--help-flags"})
-		if err != nil {
-			t.Errorf("wanted nil, got %s", err)
-		}
-		got, err := ioutil.ReadAll(b)
-		if err != nil {
-			t.Errorf("[err] want nil, got %s", err)
-		}
-		if string(got) != want {
-			t.Errorf("want: %s, got %s", want, string(got))
-		}
-	})
-
-	t.Run("validate command returns error when flag help when asked for no out set", func(t *testing.T) {
-		subject := &Command{
-			Name:  "command",
-			Flags: flag.NewFlagSet("command", flag.ExitOnError),
-			Check: func(command *Command) error {
-				return nil
-			},
-			Run: func(command *Command) error {
-				return nil
-			},
-		}
-
-		subject.Flags.String("test", "", "testing flags")
-		subject.Flags.String("t", "", "testing flags")
-
-		err := subject.run([]string{"--help-flags"})
-		if err != flag.ErrHelp {
-			t.Errorf("wanted flag.ErrHelp, got %s", err)
-		}
-	})
 }
 
 func Test_DefaultCommandRunner(t *testing.T) {
@@ -644,32 +549,6 @@ func Test_askedForHelp(t *testing.T) {
 	t.Run("validate help is not found", func(t *testing.T) {
 		args := []string{"interface", "command", "subcommand", "-flag", "value", "-d"}
 		hasFlag := askedForHelp(args)
-		if hasFlag {
-			t.Errorf("want false, got %t", hasFlag)
-		}
-	})
-}
-
-func Test_askedForFlagHelp(t *testing.T) {
-	t.Run("validate --help-flags is found", func(t *testing.T) {
-		args := []string{"interface", "command", "subcommand", "-flag", "value", "--help-flags", "-d"}
-		hasFlag := askedForFlagHelp(args)
-		if !hasFlag {
-			t.Errorf("want true, got %t", hasFlag)
-		}
-	})
-
-	t.Run("validate -help-flags is found", func(t *testing.T) {
-		args := []string{"interface", "command", "subcommand", "-flag", "value", "-help-flags", "-d"}
-		hasFlag := askedForFlagHelp(args)
-		if !hasFlag {
-			t.Errorf("want true, got %t", hasFlag)
-		}
-	})
-
-	t.Run("validate help flags is not found", func(t *testing.T) {
-		args := []string{"interface", "command", "subcommand", "-flag", "value", "-d"}
-		hasFlag := askedForFlagHelp(args)
 		if hasFlag {
 			t.Errorf("want false, got %t", hasFlag)
 		}

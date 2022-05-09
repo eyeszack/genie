@@ -78,6 +78,14 @@ var DefaultCommandUsageMarkedFunc = func(command *Command) string {
 	return builder.String()
 }
 
+var DefaultFlagsUsageMarkedFunc = func(command *Command) string {
+	//we'll remove the leading newline because in this context it's not needed
+	if command.MergeFlagUsage {
+		return strings.TrimPrefix(mergeFlagsUsageMarked(command), "\n")
+	}
+	return strings.TrimPrefix(flagsUsageMarked(command), "\n")
+}
+
 func mergeFlagsUsageMarked(command *Command) string {
 	usages := make(map[string][]string)
 
