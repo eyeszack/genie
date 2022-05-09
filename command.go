@@ -188,10 +188,10 @@ var DefaultCommandRunner = func(command *Command, args []string) error { //only 
 	if askedForFlagHelp(args) {
 		if command.Out != nil {
 			if command.MergeFlagUsage {
-				_, _ = fmt.Fprint(command.Out, strings.TrimPrefix(mergeFlagsUsage(command), "\n"))
+				_, _ = fmt.Fprint(command.Out, strings.TrimPrefix(mergeFlagsUsage(command), "\nFLAGS:\n"))
 				return nil
 			}
-			_, _ = fmt.Fprint(command.Out, strings.TrimPrefix(flagsUsage(command), "\n"))
+			_, _ = fmt.Fprint(command.Out, strings.TrimPrefix(flagsUsage(command), "\nFLAGS:\n"))
 			return nil
 		}
 		return flag.ErrHelp

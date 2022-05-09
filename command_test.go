@@ -498,8 +498,7 @@ FLAGS:
 
 	t.Run("validate command returns flag help when asked for", func(t *testing.T) {
 		b := bytes.NewBufferString("")
-		want := `FLAGS:
---help               display help for command
+		want := `--help               display help for command
 --test     string    testing flags
 -t         string    testing flags
 `
@@ -536,8 +535,7 @@ FLAGS:
 
 	t.Run("validate command returns flag help when asked for - merged", func(t *testing.T) {
 		b := bytes.NewBufferString("")
-		want := `FLAGS:
---help                  display help for command
+		want := `--help                  display help for command
 --test -t     string    testing flags
 `
 		subject := &Command{
