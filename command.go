@@ -184,6 +184,18 @@ var DefaultCommandRunner = func(command *Command, args []string) error { //only 
 		return flag.ErrHelp
 	}
 
+	if askedForFlagHelp(args) {
+		if command.Out != nil {
+			if command.MergeFlagUsage {
+				_, _ = fmt.Fprint(command.Out, mergeFlagsUsage(command))
+				return nil
+			}
+			_, _ = fmt.Fprint(command.Out, flagsUsage(command))
+			return nil
+		}
+		return flag.ErrHelp
+	}
+
 	if command.Run == nil {
 		return ErrCommandNotRunnable
 	}
@@ -211,6 +223,16 @@ var DefaultCommandRunner = func(command *Command, args []string) error { //only 
 func askedForHelp(args []string) bool {
 	for _, f := range args {
 		if f == "-help" || f == "--help" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func askedForFlagHelp(args []string) bool {
+	for _, f := range args {
+		if f == "-help-flags" || f == "--help-flags" {
 			return true
 		}
 	}

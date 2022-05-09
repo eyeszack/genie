@@ -360,3 +360,52 @@ FLAGS:
 		}
 	})
 }
+
+func Test_mergeFlagsUsage(t *testing.T) {
+	t.Run("validate flag usage", func(t *testing.T) {
+		want := `
+FLAGS:
+--help                     display help for command
+--testing -t     string    this is a testing flag
+--version                  display version information
+`
+		subject := NewCommand("command", false)
+		subject.Description = "The test command is for testing."
+		subject.Flags.String("testing", "", "this is a testing flag")
+		subject.Flags.String("t", "", "this is a testing flag")
+		subject.Flags.String("hideme", "", "i should not show up")
+		subject.Flags.String("m", "", "i should not show up")
+		subject.SecretFlag("hideme")
+		subject.SecretFlag("m")
+		subject.root = true
+		got := mergeFlagsUsage(subject)
+		if got != want {
+			t.Errorf("want: %s, got %s", want, got)
+		}
+	})
+}
+
+func Test_flagsUsage(t *testing.T) {
+	t.Run("validate flag usage", func(t *testing.T) {
+		want := `
+FLAGS:
+--help                  display help for command
+--testing     string    this is a testing flag
+--version               display version information
+-t            string    this is a testing flag
+`
+		subject := NewCommand("command", false)
+		subject.Description = "The test command is for testing."
+		subject.Flags.String("testing", "", "this is a testing flag")
+		subject.Flags.String("t", "", "this is a testing flag")
+		subject.Flags.String("hideme", "", "i should not show up")
+		subject.Flags.String("m", "", "i should not show up")
+		subject.SecretFlag("hideme")
+		subject.SecretFlag("m")
+		subject.root = true
+		got := flagsUsage(subject)
+		if got != want {
+			t.Errorf("want: %s, got %s", want, got)
+		}
+	})
+}
