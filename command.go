@@ -176,7 +176,7 @@ func (c *Command) run(args []string) error { //only flags/args: -flag value -fla
 }
 
 var DefaultCommandRunner = func(command *Command, args []string) error { //only flags/args: -flag value -flag2 value2 arg1 arg2
-	if askedForHelp(args) {
+	if ContainsFlag("help", args) {
 		if command.Out != nil {
 			_, _ = fmt.Fprint(command.Out, command.ShowUsage())
 			return nil
@@ -208,9 +208,9 @@ var DefaultCommandRunner = func(command *Command, args []string) error { //only 
 	return command.Run(command)
 }
 
-func askedForHelp(args []string) bool {
-	for _, f := range args {
-		if f == "-help" || f == "--help" {
+func ContainsFlag(flag string, flags []string) bool {
+	for _, f := range flags {
+		if f == "-"+flag || f == "--"+flag {
 			return true
 		}
 	}

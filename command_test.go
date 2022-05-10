@@ -529,10 +529,10 @@ func Test_DefaultCommandRunner(t *testing.T) {
 	})
 }
 
-func Test_askedForHelp(t *testing.T) {
+func Test_ContainsFlag(t *testing.T) {
 	t.Run("validate --help is found", func(t *testing.T) {
 		args := []string{"interface", "command", "subcommand", "-flag", "value", "--help", "-d"}
-		hasFlag := askedForHelp(args)
+		hasFlag := ContainsFlag("help", args)
 		if !hasFlag {
 			t.Errorf("want true, got %t", hasFlag)
 		}
@@ -540,7 +540,7 @@ func Test_askedForHelp(t *testing.T) {
 
 	t.Run("validate -help is found", func(t *testing.T) {
 		args := []string{"interface", "command", "subcommand", "-flag", "value", "-help", "-d"}
-		hasFlag := askedForHelp(args)
+		hasFlag := ContainsFlag("help", args)
 		if !hasFlag {
 			t.Errorf("want true, got %t", hasFlag)
 		}
@@ -548,7 +548,7 @@ func Test_askedForHelp(t *testing.T) {
 
 	t.Run("validate help is not found", func(t *testing.T) {
 		args := []string{"interface", "command", "subcommand", "-flag", "value", "-d"}
-		hasFlag := askedForHelp(args)
+		hasFlag := ContainsFlag("help", args)
 		if hasFlag {
 			t.Errorf("want false, got %t", hasFlag)
 		}
