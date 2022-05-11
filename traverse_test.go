@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func Test_Traverse(t *testing.T) {
+func TestLamp_TraverseCommands(t *testing.T) {
 	t.Run("validate traverse", func(t *testing.T) {
 		b := bytes.NewBufferString("")
 		want := `lamp
@@ -29,7 +29,7 @@ lamp sub2
 			},
 		}
 
-		Traverse(subject, func(c *Command) {
+		subject.TraverseCommands(func(c *Command) {
 			b.Write([]byte(c.Path() + "\n"))
 		})
 

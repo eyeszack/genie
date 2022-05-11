@@ -1,6 +1,6 @@
 package genie
 
-func Traverse(l *Lamp, do func(command *Command)) {
+func (l *Lamp) TraverseCommands(do func(command *Command)) {
 	l.RootCommand.AnchorPaths()
 	do(l.RootCommand)
 	for _, sc := range l.RootCommand.SubCommands {
