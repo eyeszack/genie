@@ -142,6 +142,7 @@ func (l *Lamp) ExecuteWith(args []string) (*Command, error) { //all: os.Args() =
 
 //TraverseCommands visits each command and its subcommands, and calls do with each command.
 func (l *Lamp) TraverseCommands(do func(command *Command)) {
+	l.RootCommand.root = true
 	l.RootCommand.AnchorPaths()
 	do(l.RootCommand)
 	for _, sc := range l.RootCommand.SubCommands {
