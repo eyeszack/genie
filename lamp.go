@@ -57,6 +57,16 @@ func (l *Lamp) SetWriters(o, e io.Writer) {
 	}
 }
 
+//Grant will execute the Lamp with os.Args as the provided arguments, returns the command executed if found.
+func (l *Lamp) Grant() (*Command, error) {
+	return l.Execute()
+}
+
+//GrantWith executes the Lamp with the provided arguments, returns the command executed if found.
+func (l *Lamp) GrantWith(args []string) (*Command, error) {
+	return l.ExecuteWith(args)
+}
+
 //Execute will execute the Lamp with os.Args as the provided arguments, returns the command executed if found.
 func (l *Lamp) Execute() (*Command, error) {
 	return l.ExecuteWith(os.Args)

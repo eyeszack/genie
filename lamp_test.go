@@ -163,6 +163,76 @@ func TestLamp_SetWriters(t *testing.T) {
 	})
 }
 
+func TestLamp_Grant(t *testing.T) {
+	t.Run("validate that os.Args are provided", func(t *testing.T) {
+		oldArgs := os.Args
+		defer func() { os.Args = oldArgs }()
+		os.Args = []string{"test", "-version"}
+		b := bytes.NewBufferString("")
+		want := "test 0.0.0\n"
+		subject := &Lamp{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				Out:  b,
+				Err:  b,
+				Run: func(command *Command) error {
+					command.Out.Write([]byte("root command ran"))
+					return nil
+				},
+			},
+			Out:             b,
+			Err:             b,
+			Version:         "test 0.0.0",
+			MaxCommandDepth: 3,
+		}
+		_, err := subject.Grant()
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
+}
+
+func TestLamp_GrantWith(t *testing.T) {
+	t.Run("validate lamp root command runs - flags", func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		want := "root command ran"
+		subject := &Lamp{
+			Name: "test",
+			RootCommand: &Command{
+				Name: "test",
+				Out:  b,
+				Err:  b,
+				Run: func(command *Command) error {
+					command.Out.Write([]byte("root command ran"))
+					return nil
+				},
+			},
+			Out:             b,
+			Err:             b,
+			MaxCommandDepth: 3,
+		}
+		_, err := subject.GrantWith([]string{"test", "-flag", "value"})
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
+}
+
 func TestLamp_Execute(t *testing.T) {
 	t.Run("validate that os.Args are provided", func(t *testing.T) {
 		oldArgs := os.Args
