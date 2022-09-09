@@ -19,7 +19,7 @@ var (
 	ErrCommandNotRunnable  = Error("command not runnable")
 )
 
-//Lamp is a very simple representation of a Command Line Interface or any interface with commands.
+// Lamp is a very simple representation of a Command Line Interface or any interface with commands.
 type Lamp struct {
 	Name            string
 	RootCommand     *Command
@@ -30,7 +30,7 @@ type Lamp struct {
 	MaxCommandDepth int
 }
 
-//NewLamp returns a Lamp with sensible defaults.
+// NewLamp returns a Lamp with sensible defaults.
 func NewLamp(name, version string, silenceFlags bool) *Lamp {
 	return &Lamp{
 		Name:            name,
@@ -43,8 +43,8 @@ func NewLamp(name, version string, silenceFlags bool) *Lamp {
 	}
 }
 
-//SetWriters will set the out and err writers on the interface and all commands.
-//If a writer is nil it will not change current writer.
+// SetWriters will set the out and err writers on the interface and all commands.
+// If a writer is nil it will not change current writer.
 func (l *Lamp) SetWriters(o, e io.Writer) {
 	if o != nil {
 		l.Out = o
@@ -57,22 +57,22 @@ func (l *Lamp) SetWriters(o, e io.Writer) {
 	}
 }
 
-//Grant will execute the Lamp with os.Args as the provided arguments, returns the command executed if found.
+// Grant will execute the Lamp with os.Args as the provided arguments, returns the command executed if found.
 func (l *Lamp) Grant() (*Command, error) {
 	return l.Execute()
 }
 
-//GrantWith executes the Lamp with the provided arguments, returns the command executed if found.
+// GrantWith executes the Lamp with the provided arguments, returns the command executed if found.
 func (l *Lamp) GrantWith(args []string) (*Command, error) {
 	return l.ExecuteWith(args)
 }
 
-//Execute will execute the Lamp with os.Args as the provided arguments, returns the command executed if found.
+// Execute will execute the Lamp with os.Args as the provided arguments, returns the command executed if found.
 func (l *Lamp) Execute() (*Command, error) {
 	return l.ExecuteWith(os.Args)
 }
 
-//ExecuteWith executes the Lamp with the provided arguments, returns the command executed if found.
+// ExecuteWith executes the Lamp with the provided arguments, returns the command executed if found.
 func (l *Lamp) ExecuteWith(args []string) (*Command, error) { //all: os.Args() = lamp command command -flag value -flag2 value2 arg1 arg2
 	//if we have no root command there is nothing we can do
 	if l.RootCommand == nil {
@@ -81,6 +81,7 @@ func (l *Lamp) ExecuteWith(args []string) (*Command, error) { //all: os.Args() =
 
 	//set root to true since we know for sure this is the root command, and anchor the paths from root
 	l.RootCommand.root = true
+	l.RootCommand.depth = 0
 	l.RootCommand.AnchorPaths()
 
 	//no args will return an error, but some folks may not care
@@ -150,7 +151,7 @@ func (l *Lamp) ExecuteWith(args []string) (*Command, error) { //all: os.Args() =
 	return l.RootCommand, l.RootCommand.run(args[1:])
 }
 
-//TraverseCommands visits each command and its subcommands, and calls do with each command.
+// TraverseCommands visits each command and its subcommands, and calls do with each command.
 func (l *Lamp) TraverseCommands(do func(command *Command)) {
 	l.RootCommand.root = true
 	l.RootCommand.AnchorPaths()
@@ -167,7 +168,7 @@ func traverse(c *Command, do func(command *Command)) {
 	}
 }
 
-//returns true if flags were found, and the start position of the first flag
+// returns true if flags were found, and the start position of the first flag
 func (l *Lamp) hasFlags(args []string) (int, bool) {
 	for i, flag := range args {
 		if strings.HasPrefix(flag, "-") {
@@ -178,9 +179,9 @@ func (l *Lamp) hasFlags(args []string) (int, bool) {
 	return -1, false
 }
 
-//path should not contain the interface name
-//if partialAllowed == false, path should only contain commands, no flags/args (e.g. command subcommand)
-//if partialAllowed == true, path can contain trailing flags/args as it will return last command found if any (e.g. command subcommand -flag value -flag2 value2 arg1 arg2)
+// path should not contain the interface name
+// if partialAllowed == false, path should only contain commands, no flags/args (e.g. command subcommand)
+// if partialAllowed == true, path can contain trailing flags/args as it will return last command found if any (e.g. command subcommand -flag value -flag2 value2 arg1 arg2)
 func (l *Lamp) searchPathForCommand(path []string, partialAllowed bool) (*Command, bool, int) {
 	var lastFoundCommand *Command
 	lastFoundResult := false

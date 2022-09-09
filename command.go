@@ -7,26 +7,26 @@ import (
 	"os"
 )
 
-//CheckFunc is used to check stuff before run is called, if error is returned run will not be called.
+// CheckFunc is used to check stuff before run is called, if error is returned run will not be called.
 type CheckFunc func(command *Command) error
 
-//RunFunc is the function that will be called when the command is run.
+// RunFunc is the function that will be called when the command is run.
 type RunFunc func(command *Command) error
 
-//UsageFunc is the function that will be called when the command is run.
+// UsageFunc is the function that will be called when the command is run.
 type UsageFunc func(command *Command) string
 
-//NoopUsage if used for usage silence.
+// NoopUsage if used for usage silence.
 func NoopUsage() {}
 
-//NoopWriter is used to silence output.
+// NoopWriter is used to silence output.
 type NoopWriter struct{}
 
 func (n *NoopWriter) Write([]byte) (int, error) {
 	return 0, nil
 }
 
-//Command represents a command or subcommand of the interface.
+// Command represents a command or subcommand of the interface.
 type Command struct {
 	Name           string
 	Aliases        []string
@@ -47,9 +47,10 @@ type Command struct {
 	root           bool   //this is set at execution time
 	path           string //this is set at execution time
 	secretFlags    []string
+	depth          int
 }
 
-//NewCommand returns a Command with sensible defaults.
+// NewCommand returns a Command with sensible defaults.
 func NewCommand(name string, silenceFlags bool) *Command {
 	c := &Command{
 		Name:         name,
@@ -74,7 +75,7 @@ func NewCommand(name string, silenceFlags bool) *Command {
 	return c
 }
 
-//SetOut sets the command's output writer, and all of it's subcommand's as well.
+// SetOut sets the command's output writer, and all of it's subcommand's as well.
 func (c *Command) SetOut(o io.Writer) {
 	c.Out = o
 	for _, sc := range c.SubCommands {
@@ -82,7 +83,7 @@ func (c *Command) SetOut(o io.Writer) {
 	}
 }
 
-//SetErr sets the command's error writer, flags output writer, and all of it's subcommand's as well.
+// SetErr sets the command's error writer, flags output writer, and all of it's subcommand's as well.
 func (c *Command) SetErr(e io.Writer) {
 	c.Err = e
 	//if flags set and not noop via silenced, set output
@@ -94,7 +95,7 @@ func (c *Command) SetErr(e io.Writer) {
 	}
 }
 
-//FlagWasProvided returns true if the flag was actually provided at execution time.
+// FlagWasProvided returns true if the flag was actually provided at execution time.
 func (c *Command) FlagWasProvided(name string) bool {
 	if c.Flags == nil {
 		return false
@@ -110,12 +111,12 @@ func (c *Command) FlagWasProvided(name string) bool {
 	return set
 }
 
-//SecretFlag will hide the named flag from usage.
+// SecretFlag will hide the named flag from usage.
 func (c *Command) SecretFlag(name string) {
 	c.secretFlags = append(c.secretFlags, name)
 }
 
-//ShowUsage runs the provided usage function, or the default if none provided.
+// ShowUsage runs the provided usage function, or the default if none provided.
 func (c *Command) ShowUsage() string {
 	if c.Usage != nil {
 		return c.Usage(c)
@@ -124,24 +125,25 @@ func (c *Command) ShowUsage() string {
 	return DefaultCommandUsageFunc(c)
 }
 
-//Path returns the path to this command from the "anchor" command.
-//The path will be blank until AnchorPaths is called here or on a parent command, or when command interface is executed.
+// Path returns the path to this command from the "anchor" command.
+// The path will be blank until AnchorPaths is called here or on a parent command, or when command interface is executed.
 func (c *Command) Path() string {
 	return c.path
 }
 
-//AnchorPaths will set this command as the start of the command path.
+// AnchorPaths will set this command as the start of the command path.
 func (c *Command) AnchorPaths() {
 	c.path = c.Name
 	for _, sc := range c.SubCommands {
-		sc.adjustPath(c.path)
+		sc.adjustPath(c.path, c.depth+1)
 	}
 }
 
-func (c *Command) adjustPath(path string) {
+func (c *Command) adjustPath(path string, depth int) {
 	c.path = fmt.Sprintf("%s %s", path, c.Name)
+	c.depth = depth
 	for _, sc := range c.SubCommands {
-		sc.adjustPath(c.path)
+		sc.adjustPath(c.path, c.depth+1)
 	}
 }
 

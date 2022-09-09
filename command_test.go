@@ -147,10 +147,36 @@ func TestCommand_adjustPath(t *testing.T) {
 			},
 		}
 
-		subject.SubCommands[0].adjustPath(subject.Name)
+		subject.SubCommands[0].adjustPath(subject.Name, subject.depth+1)
 		got := subject.SubCommands[0].SubCommands[0].Path()
 		if got != want {
 			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate depth after anchoring a command", func(t *testing.T) {
+		subject := &Command{
+			Name: "test",
+			SubCommands: []*Command{
+				{
+					Name: "command",
+					SubCommands: []*Command{
+						{
+							Name: "command2",
+						},
+					},
+				},
+			},
+		}
+
+		subject.SubCommands[0].adjustPath(subject.Name, subject.depth+1)
+		got := subject.SubCommands[0].depth
+		if got != 1 {
+			t.Errorf("want 1, got %d", got)
+		}
+		got = subject.SubCommands[0].SubCommands[0].depth
+		if got != 2 {
+			t.Errorf("want 2, got %d", got)
 		}
 	})
 }
