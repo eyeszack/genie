@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 // CheckFunc is used to check stuff before run is called, if error is returned run will not be called.
@@ -46,8 +47,8 @@ type Command struct {
 	Secret         bool
 	root           bool   //this is set at execution time
 	path           string //this is set at execution time
+	depth          int    //this is set at execution time
 	secretFlags    []string
-	depth          int
 }
 
 // NewCommand returns a Command with sensible defaults.
@@ -93,6 +94,27 @@ func (c *Command) SetErr(e io.Writer) {
 	for _, sc := range c.SubCommands {
 		sc.SetErr(e)
 	}
+}
+
+// FlagsAndArgs returns a string representation of any flags and arguments provided to the command.
+// If using the Lamp provided execution methods, this method will be ready to use in Check and Run.
+func (c *Command) FlagsAndArgs() string {
+	if c.Flags == nil {
+		return ""
+	}
+
+	sb := strings.Builder{}
+	c.Flags.Visit(func(f *flag.Flag) {
+		sb.WriteString(fmt.Sprintf("%s %s ", f.Name, f.Value.String()))
+	})
+	if len(c.Flags.Args()) > 0 {
+		for _, arg := range c.Flags.Args() {
+			sb.WriteString(fmt.Sprintf("%s ", arg))
+		}
+	}
+	s := strings.Trim(sb.String(), " ")
+
+	return s
 }
 
 // FlagWasProvided returns true if the flag was actually provided at execution time.

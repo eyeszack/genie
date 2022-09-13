@@ -105,6 +105,61 @@ func Test_NewCommand(t *testing.T) {
 	})
 }
 
+func TestCommand_FlagsAndArgs(t *testing.T) {
+	t.Run("validate flags and args are printed as expected", func(t *testing.T) {
+		want := "d true flag 100 heyo playo argone argtwo" //flags will be sorted, args will not!
+		subject := &Command{
+			Name:  "test",
+			Flags: flag.NewFlagSet("test", flag.ContinueOnError),
+			Run: func(command *Command) error {
+				return nil
+			},
+		}
+
+		subject.Flags.String("flag", "", "testing flags")
+		subject.Flags.Bool("d", false, "testing flags")
+		subject.Flags.String("heyo", "", "testing flags")
+		subject.run([]string{"--flag", "100", "--d", "--heyo", "playo", "argone", "argtwo"})
+		got := subject.FlagsAndArgs()
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate that args only prints as expected", func(t *testing.T) {
+		want := "argone argtwo"
+		subject := &Command{
+			Name:  "test",
+			Flags: flag.NewFlagSet("test", flag.ContinueOnError),
+			Run: func(command *Command) error {
+				return nil
+			},
+		}
+
+		subject.run([]string{"argone", "argtwo"})
+		got := subject.FlagsAndArgs()
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("validate that nil flags and no args prints as expected", func(t *testing.T) {
+		want := ""
+		subject := &Command{
+			Name: "test",
+			Run: func(command *Command) error {
+				return nil
+			},
+		}
+
+		subject.run([]string{})
+		got := subject.FlagsAndArgs()
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
+}
+
 func TestCommand_AnchorPaths(t *testing.T) {
 	t.Run("validate paths after anchoring a command", func(t *testing.T) {
 		want := "test command command2"
