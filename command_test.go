@@ -1,6 +1,7 @@
 package genie
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"flag"
@@ -8,11 +9,31 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 )
 
 type Mock struct {
 	Name string
+}
+
+func (m *Mock) PipedIn(command *Command) (error, bool) {
+	scanner := bufio.NewScanner(os.Stdin)
+	builder := strings.Builder{}
+	for scanner.Scan() {
+		builder.WriteString(scanner.Text())
+	}
+
+	switch builder.String() {
+	case "skip":
+		return nil, true
+	case "error":
+		return errors.New("unexpected error"), false
+	case "happy":
+		return nil, false
+	default:
+		return errors.New("unexpected input, check your tests"), false
+	}
 }
 
 func (m *Mock) Check(command *Command) error {
@@ -500,6 +521,159 @@ func TestCommand_run(t *testing.T) {
 		err := subject.run([]string{"-flag", "value"})
 		if err == nil {
 			t.Error("wanted an error, got nil")
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
+
+	t.Run("validate command pipeins, checks and runs - struct with methods", func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		mock := Mock{}
+		want := "mock ran"
+		subject := &Command{
+			Name:    "command",
+			Out:     b,
+			Err:     b,
+			PipedIn: mock.PipedIn,
+			Check:   mock.Check,
+			Run:     mock.Run,
+		}
+		subject.Flags = flag.NewFlagSet("command", flag.ContinueOnError)
+		subject.Flags.StringVar(&mock.Name, "name", "", "give me a name")
+
+		// simulate stdin piped from terminal
+		tmp, err := os.CreateTemp("", "pipe")
+		if err != nil {
+			t.Errorf("error in test, %s", err)
+			t.Fail()
+		}
+		defer os.Remove(tmp.Name())
+		if _, err := tmp.Write([]byte("happy")); err != nil {
+			t.Errorf("error in test, %s", err)
+			t.Fail()
+		}
+		if _, err := tmp.Seek(0, 0); err != nil {
+			t.Errorf("error in test, %s", err)
+			t.Fail()
+		}
+		oldStdin := os.Stdin
+		defer func() { os.Stdin = oldStdin }()
+		os.Stdin = tmp
+
+		err = subject.run([]string{"--name", "mock"})
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
+
+	t.Run("validate command returns error if pipein fails", func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		mock := Mock{}
+		want := ""
+		subject := &Command{
+			Name:    "command",
+			Out:     b,
+			Err:     b,
+			PipedIn: mock.PipedIn,
+			Check: func(command *Command) error {
+				command.Out.Write([]byte("check ran"))
+				return nil
+			},
+			Run: func(command *Command) error {
+				command.Out.Write([]byte("command ran"))
+				return nil
+			},
+		}
+		subject.Flags = flag.NewFlagSet("command", flag.ContinueOnError)
+		subject.Flags.StringVar(&mock.Name, "name", "", "give me a name")
+
+		// simulate stdin piped from terminal
+		tmp, err := os.CreateTemp("", "pipe")
+		if err != nil {
+			t.Errorf("error in test, %s", err)
+			t.Fail()
+		}
+		defer os.Remove(tmp.Name())
+		if _, err := tmp.Write([]byte("error")); err != nil {
+			t.Errorf("error in test, %s", err)
+			t.Fail()
+		}
+		if _, err := tmp.Seek(0, 0); err != nil {
+			t.Errorf("error in test, %s", err)
+			t.Fail()
+		}
+		oldStdin := os.Stdin
+		defer func() { os.Stdin = oldStdin }()
+		os.Stdin = tmp
+
+		err = subject.run([]string{"--name", "mock"})
+		if err == nil {
+			t.Error("expected error, got nil")
+		}
+		got, err := ioutil.ReadAll(b)
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
+		}
+		if string(got) != want {
+			t.Errorf("want: %s, got %s", want, string(got))
+		}
+	})
+
+	t.Run("validate command runs but skips checks if pipein tells it to skip", func(t *testing.T) {
+		b := bytes.NewBufferString("")
+		mock := Mock{}
+		want := "command ran"
+		subject := &Command{
+			Name:    "command",
+			Out:     b,
+			Err:     b,
+			PipedIn: mock.PipedIn,
+			Check: func(command *Command) error {
+				command.Out.Write([]byte("check ran"))
+				return nil
+			},
+			Run: func(command *Command) error {
+				command.Out.Write([]byte("command ran"))
+				return nil
+			},
+		}
+		subject.Flags = flag.NewFlagSet("command", flag.ContinueOnError)
+		subject.Flags.StringVar(&mock.Name, "name", "", "give me a name")
+
+		// simulate stdin piped from terminal
+		tmp, err := os.CreateTemp("", "pipe")
+		if err != nil {
+			t.Errorf("error in test, %s", err)
+			t.Fail()
+		}
+		defer os.Remove(tmp.Name())
+		if _, err := tmp.Write([]byte("skip")); err != nil {
+			t.Errorf("error in test, %s", err)
+			t.Fail()
+		}
+		if _, err := tmp.Seek(0, 0); err != nil {
+			t.Errorf("error in test, %s", err)
+			t.Fail()
+		}
+		oldStdin := os.Stdin
+		defer func() { os.Stdin = oldStdin }()
+		os.Stdin = tmp
+
+		err = subject.run([]string{"--name", "mock"})
+		if err != nil {
+			t.Errorf("[err] want nil, got %s", err)
 		}
 		got, err := ioutil.ReadAll(b)
 		if err != nil {

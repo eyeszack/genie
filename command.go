@@ -8,7 +8,11 @@ import (
 	"strings"
 )
 
-// CheckFunc is used to check stuff before run is called, if error is returned run will not be called.
+// PipedInFunc will be called if stdin was piped in to this command, runs before check. If error is returned command
+// execution stops here.
+type PipedInFunc func(command *Command) (error, bool)
+
+// CheckFunc is used to check stuff before run is called, if error is returned command execution stops here.
 type CheckFunc func(command *Command) error
 
 // RunFunc is the function that will be called when the command is run.
@@ -39,6 +43,7 @@ type Command struct {
 	SubCommands    []*Command
 	Out            io.Writer
 	Err            io.Writer
+	PipedIn        PipedInFunc
 	Check          CheckFunc
 	Run            RunFunc
 	Usage          UsageFunc
@@ -222,8 +227,20 @@ var DefaultCommandRunner = func(command *Command, args []string) error { //only 
 		}
 	}
 
-	if command.Check != nil {
-		err := command.Check(command)
+	fileInfo, err := os.Stdin.Stat()
+	skipCheck := false
+	if err == nil {
+		if command.PipedIn != nil && ((fileInfo.Mode() & os.ModeCharDevice) == 0) {
+			// we're receiving input (stdin) via pipe
+			err, skipCheck = command.PipedIn(command)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if command.Check != nil && !skipCheck {
+		err = command.Check(command)
 		if err != nil {
 			return err
 		}
